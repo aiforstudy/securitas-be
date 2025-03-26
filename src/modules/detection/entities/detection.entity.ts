@@ -44,6 +44,13 @@ export class Detection {
   approved: string;
 
   @ApiPropertyOptional({
+    description: 'The approved by',
+    example: 'admin',
+  })
+  @Column({ length: 45 })
+  approved_by: string;
+
+  @ApiPropertyOptional({
     description: 'The zone ID',
     example: 'zone-1',
   })

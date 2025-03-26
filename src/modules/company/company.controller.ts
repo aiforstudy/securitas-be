@@ -47,20 +47,23 @@ export class CompanyController {
     return this.companyService.findAll(query);
   }
 
-  @Get(':id')
+  @Get(':code')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get a company by id' })
+  @ApiOperation({ summary: 'Get a company by code' })
   @ApiResponse({
     status: 200,
     description: 'Return the company.',
     type: Company,
   })
-  @ApiResponse({ status: 404, description: 'Company not found.' })
-  findOne(@Param('id') id: string) {
-    return this.companyService.findOne(id);
+  @ApiResponse({
+    status: 404,
+    description: 'Company not found.',
+  })
+  findOne(@Param('code') code: string) {
+    return this.companyService.findOne(code);
   }
 
-  @Patch(':id')
+  @Patch(':code')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a company' })
   @ApiResponse({
@@ -68,20 +71,29 @@ export class CompanyController {
     description: 'The company has been successfully updated.',
     type: Company,
   })
-  @ApiResponse({ status: 404, description: 'Company not found.' })
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
-    return this.companyService.update(id, updateCompanyDto);
+  @ApiResponse({
+    status: 404,
+    description: 'Company not found.',
+  })
+  update(
+    @Param('code') code: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+  ) {
+    return this.companyService.update(code, updateCompanyDto);
   }
 
-  @Delete(':id')
+  @Delete(':code')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a company' })
   @ApiResponse({
     status: 204,
     description: 'The company has been successfully deleted.',
   })
-  @ApiResponse({ status: 404, description: 'Company not found.' })
-  remove(@Param('id') id: string) {
-    return this.companyService.remove(id);
+  @ApiResponse({
+    status: 404,
+    description: 'Company not found.',
+  })
+  remove(@Param('code') code: string) {
+    return this.companyService.remove(code);
   }
 }

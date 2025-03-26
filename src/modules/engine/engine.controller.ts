@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EngineService } from './engine.service';
@@ -22,6 +24,7 @@ export class EngineController {
   constructor(private readonly engineService: EngineService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new engine' })
   @ApiResponse({
     status: 201,
@@ -33,6 +36,7 @@ export class EngineController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all engines with pagination' })
   @ApiResponse({
     status: 200,
@@ -44,6 +48,7 @@ export class EngineController {
   }
 
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get an engine by ID' })
   @ApiResponse({
     status: 200,
@@ -59,6 +64,7 @@ export class EngineController {
   }
 
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update an engine' })
   @ApiResponse({
     status: 200,
@@ -77,9 +83,10 @@ export class EngineController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an engine' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'The engine has been successfully deleted.',
   })
   @ApiResponse({

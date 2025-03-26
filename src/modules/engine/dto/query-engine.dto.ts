@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsBoolean, IsOptional, IsInt } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class QueryEngineDto {
   @ApiProperty({
@@ -11,24 +11,6 @@ export class QueryEngineDto {
   @IsString()
   @IsOptional()
   name?: string;
-
-  @ApiProperty({
-    description: 'Whether to show on home page',
-    example: true,
-    required: false,
-  })
-  @IsBoolean()
-  @IsOptional()
-  show_on_home?: boolean;
-
-  @ApiProperty({
-    description: 'Whether the engine is enabled',
-    example: true,
-    required: false,
-  })
-  @IsBoolean()
-  @IsOptional()
-  enable?: boolean;
 
   @ApiProperty({
     description: 'Page number',

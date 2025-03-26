@@ -78,4 +78,8 @@ export class MonitorService {
     const monitor = await this.findOne(id);
     await this.monitorRepository.remove(monitor);
   }
+
+  async getAllMonitors(): Promise<Monitor[]> {
+    return await this.monitorRepository.find();
+  }
 }

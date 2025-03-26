@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDate } from 'class-validator';
+import { IsString, IsDate, IsEnum, IsObject, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Engine } from '../../engine/entities/engine.entity';
 
 export class StatisticsDetectionDto {
   @ApiProperty({
@@ -35,22 +36,33 @@ export class StatisticsDetectionDto {
   group_by: 'day' | 'hour';
 }
 
-export class DetectionStatisticsResponseDto {
-  @ApiProperty({
-    description: 'Engine name',
-    example: 'engine1',
-  })
-  engine: string;
-
+export class DetectionStatisticsDataDto {
   @ApiProperty({
     description: 'Timestamp of the statistics',
     example: '2024-03-14T00:00:00Z',
   })
   timestamp: Date;
 
+  // Dynamic properties for engine counts
+  [key: string]: number | Date;
+}
+
+export class DetectionStatisticsResponseDto {
   @ApiProperty({
-    description: 'Number of detections',
-    example: 100,
+    description: 'Array of statistics data by timestamp',
+    type: [DetectionStatisticsDataDto],
   })
-  count: number;
+  @IsArray()
+  data: DetectionStatisticsDataDto[];
+
+  @ApiProperty({
+    description: 'Engine details for each engine',
+    type: 'object',
+    additionalProperties: {
+      type: 'object',
+      $ref: '#/components/schemas/Engine',
+    },
+  })
+  @IsObject()
+  engines: Record<string, Engine>;
 }

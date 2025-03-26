@@ -20,6 +20,7 @@ import { parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { MonitorService } from '../monitor/monitor.service';
 import { EngineService } from '../engine/engine.service';
+import { Engine } from '../engine/entities/engine.entity';
 
 @Injectable()
 export class DetectionService {
@@ -83,10 +84,7 @@ export class DetectionService {
       unread,
       start_date,
       end_date,
-      district,
-      suspected_offense,
-      vehicle_type,
-      license_plate,
+      approved,
       page = 1,
       limit = 10,
     } = query;
@@ -121,20 +119,8 @@ export class DetectionService {
       where.timestamp = Between(start_date, end_date);
     }
 
-    if (district) {
-      where.district = Like(`%${district}%`);
-    }
-
-    if (suspected_offense) {
-      where.suspected_offense = Like(`%${suspected_offense}%`);
-    }
-
-    if (vehicle_type) {
-      where.vehicle_type = Like(`%${vehicle_type}%`);
-    }
-
-    if (license_plate) {
-      where.license_plate = Like(`%${license_plate}%`);
+    if (approved) {
+      where.approved = approved;
     }
 
     const skip = (page - 1) * limit;
@@ -160,16 +146,14 @@ export class DetectionService {
     };
   }
 
-  async findOne(id: string, timestamp: Date): Promise<Detection> {
+  async findOne(id: string): Promise<Detection> {
     const detection = await this.detectionRepository.findOne({
-      where: { id, timestamp },
+      where: { id },
       relations: ['monitor', 'engineDetail'],
     });
 
     if (!detection) {
-      throw new NotFoundException(
-        `Detection with ID ${id} and timestamp ${timestamp} not found`,
-      );
+      throw new NotFoundException(`Detection with ID ${id} not found`);
     }
 
     return detection;
@@ -177,52 +161,92 @@ export class DetectionService {
 
   async update(
     id: string,
-    timestamp: Date,
     updateDetectionDto: UpdateDetectionDto,
   ): Promise<Detection> {
-    const detection = await this.findOne(id, timestamp);
+    const detection = await this.findOne(id);
     const updatedDetection = Object.assign(detection, updateDetectionDto);
     return this.detectionRepository.save(updatedDetection);
   }
 
-  async remove(id: string, timestamp: Date): Promise<void> {
-    const detection = await this.findOne(id, timestamp);
+  async remove(id: string): Promise<void> {
+    const detection = await this.findOne(id);
     await this.detectionRepository.remove(detection);
   }
 
   async getStatistics(
     query: StatisticsDetectionDto,
-  ): Promise<DetectionStatisticsResponseDto[]> {
-    const { from, to, timezone, group_by } = query;
+  ): Promise<DetectionStatisticsResponseDto> {
+    const { from, to } = query;
 
-    // Create the SQL query based on grouping
-    const timeFormat =
-      group_by === 'day'
-        ? 'DATE(timestamp)'
-        : "DATE_FORMAT(timestamp, '%Y-%m-%d %H:00:00')";
+    // Get all unique engines with their details
+    const engines = await this.engineService.getAllEngines();
 
-    const queryBuilder = this.detectionRepository
+    // Create a map for quick lookup of engine details
+    const engineDetailsMap = engines.reduce(
+      (acc, engine) => {
+        acc[engine.id] = engine;
+        return acc;
+      },
+      {} as Record<string, Engine>,
+    );
+
+    // Get all detections within the date range
+    const detections = await this.detectionRepository
       .createQueryBuilder('detection')
       .select('detection.engine', 'engine')
-      .addSelect(`${timeFormat}`, 'timestamp')
       .addSelect('COUNT(*)', 'count')
-      .where('detection.timestamp BETWEEN :startDate AND :endDate', {
-        startDate: from,
-        endDate: to,
-      })
+      .addSelect('DATE(detection.timestamp)', 'date')
+      .where('detection.timestamp BETWEEN :from AND :to', { from, to })
       .groupBy('detection.engine')
-      .addGroupBy('timestamp')
-      .orderBy('timestamp', 'ASC')
-      .addOrderBy('detection.engine', 'ASC');
+      .addGroupBy('date')
+      .getRawMany();
 
-    const results = await queryBuilder.getRawMany();
+    // Generate all dates in the range
+    const dates: Date[] = [];
+    let currentDate = new Date(from);
+    while (currentDate <= to) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
 
-    // Format timestamps according to timezone
-    return results.map((result) => ({
-      engine: result.engine,
-      timestamp: parseISO(result.timestamp),
-      count: parseInt(result.count),
-    }));
+    // Create a map for quick lookup of detection counts
+    const detectionCountsMap = detections.reduce(
+      (acc, detection) => {
+        const date = detection.date.toISOString().split('T')[0];
+        if (!acc[date]) {
+          acc[date] = {};
+        }
+        acc[date][detection.engine] = parseInt(detection.count);
+        return acc;
+      },
+      {} as Record<string, Record<string, number>>,
+    );
+
+    // Generate the response data
+    const data = dates.map((date) => {
+      const dateStr = date.toISOString().split('T')[0];
+      const counts: Record<string, number> = {};
+
+      // Initialize counts for all engines to 0
+      engines.forEach((engine) => {
+        counts[engine.id] = 0;
+      });
+
+      // Update counts with actual detection data if available
+      if (detectionCountsMap[dateStr]) {
+        Object.assign(counts, detectionCountsMap[dateStr]);
+      }
+
+      return {
+        timestamp: date,
+        ...counts,
+      };
+    });
+
+    return {
+      data,
+      engines: engineDetailsMap,
+    };
   }
 
   async searchDetections(query: SearchDetectionDto): Promise<Detection[]> {

@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { DetectionService } from './detection.service';
@@ -37,7 +39,34 @@ export class DetectionController {
   //   return this.detectionService.create(createDetectionDto);
   // }
 
+  @Get('statistics')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get detection statistics by engine' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return detection statistics grouped by engine and time.',
+    type: DetectionStatisticsResponseDto,
+  })
+  getStatistics(
+    @Query() query: StatisticsDetectionDto,
+  ): Promise<DetectionStatisticsResponseDto> {
+    return this.detectionService.getStatistics(query);
+  }
+
+  @Get('search')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Search detections with advanced filters' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return filtered detections sorted by timestamp.',
+    type: [Detection],
+  })
+  searchDetections(@Query() query: SearchDetectionDto): Promise<Detection[]> {
+    return this.detectionService.searchDetections(query);
+  }
+
   @Post('incoming')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new detection' })
   @ApiResponse({
     status: 201,
@@ -51,6 +80,7 @@ export class DetectionController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all detections' })
   @ApiResponse({
     status: 200,
@@ -62,6 +92,7 @@ export class DetectionController {
   }
 
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get a detection by id and timestamp' })
   @ApiResponse({
     status: 200,
@@ -72,14 +103,12 @@ export class DetectionController {
     status: 404,
     description: 'Detection not found.',
   })
-  findOne(
-    @Param('id') id: string,
-    @Query('timestamp') timestamp: Date,
-  ): Promise<Detection> {
-    return this.detectionService.findOne(id, timestamp);
+  findOne(@Param('id') id: string): Promise<Detection> {
+    return this.detectionService.findOne(id);
   }
 
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a detection' })
   @ApiResponse({
     status: 200,
@@ -92,50 +121,23 @@ export class DetectionController {
   })
   update(
     @Param('id') id: string,
-    @Query('timestamp') timestamp: Date,
     @Body() updateDetectionDto: UpdateDetectionDto,
   ): Promise<Detection> {
-    return this.detectionService.update(id, timestamp, updateDetectionDto);
+    return this.detectionService.update(id, updateDetectionDto);
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a detection' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'The detection has been successfully deleted.',
   })
   @ApiResponse({
     status: 404,
     description: 'Detection not found.',
   })
-  remove(
-    @Param('id') id: string,
-    @Query('timestamp') timestamp: Date,
-  ): Promise<void> {
-    return this.detectionService.remove(id, timestamp);
-  }
-
-  @Get('statistics')
-  @ApiOperation({ summary: 'Get detection statistics by engine' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return detection statistics grouped by engine and time.',
-    type: [DetectionStatisticsResponseDto],
-  })
-  getStatistics(
-    @Query() query: StatisticsDetectionDto,
-  ): Promise<DetectionStatisticsResponseDto[]> {
-    return this.detectionService.getStatistics(query);
-  }
-
-  @Get('search')
-  @ApiOperation({ summary: 'Search detections with advanced filters' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return filtered detections sorted by timestamp.',
-    type: [Detection],
-  })
-  searchDetections(@Query() query: SearchDetectionDto): Promise<Detection[]> {
-    return this.detectionService.searchDetections(query);
+  remove(@Param('id') id: string): Promise<void> {
+    return this.detectionService.remove(id);
   }
 }

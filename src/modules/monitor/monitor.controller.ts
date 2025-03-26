@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { MonitorService } from './monitor.service';
@@ -22,6 +24,7 @@ export class MonitorController {
   constructor(private readonly monitorService: MonitorService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new monitor' })
   @ApiResponse({
     status: 201,
@@ -33,6 +36,7 @@ export class MonitorController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all monitors' })
   @ApiResponse({
     status: 200,
@@ -44,6 +48,7 @@ export class MonitorController {
   }
 
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get a monitor by id' })
   @ApiResponse({
     status: 200,
@@ -59,6 +64,7 @@ export class MonitorController {
   }
 
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a monitor' })
   @ApiResponse({
     status: 200,
@@ -77,9 +83,10 @@ export class MonitorController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a monitor' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'The monitor has been successfully deleted.',
   })
   @ApiResponse({

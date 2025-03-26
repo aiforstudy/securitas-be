@@ -49,6 +49,24 @@ export class UpdateDetectionDto {
   unread?: boolean;
 
   @ApiProperty({
+    description: 'The approved status',
+    example: 'yes',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  approved?: string;
+
+  @ApiProperty({
+    description: 'The approved by',
+    example: 'admin',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  approved_by?: string;
+
+  @ApiProperty({
     description: 'The district where the detection occurred',
     example: 'District 1',
     required: false,

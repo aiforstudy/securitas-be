@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from './entities/company.entity';
@@ -16,6 +20,17 @@ export class CompanyService {
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
+    // Check if company_code already exists
+    const existingCompany = await this.companyRepository.findOne({
+      where: { company_code: createCompanyDto.company_code },
+    });
+
+    if (existingCompany) {
+      throw new BadRequestException(
+        `Company with code ${createCompanyDto.company_code} already exists`,
+      );
+    }
+
     // Ensure we have an ID
     const companyData = {
       ...createCompanyDto,
@@ -33,43 +48,73 @@ export class CompanyService {
     const [data, total] = await this.companyRepository.findAndCount({
       skip,
       take: limit,
-      order: {
-        created_at: 'DESC',
-      },
     });
-
-    const total_pages = Math.ceil(total / limit);
 
     return {
       data,
-      page: Number(page),
-      limit: Number(limit),
-      total: Number(total),
-      total_pages: Number(total_pages),
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
     };
   }
 
-  async findOne(id: string): Promise<Company> {
-    const company = await this.companyRepository.findOne({ where: { id } });
+  async findOne(company_code: string): Promise<Company> {
+    const company = await this.companyRepository.findOne({
+      where: { company_code },
+    });
+
     if (!company) {
-      throw new NotFoundException(`Company with ID "${id}" not found`);
+      throw new NotFoundException(
+        `Company with code ${company_code} not found`,
+      );
     }
+
     return company;
   }
 
   async update(
-    id: string,
+    company_code: string,
     updateCompanyDto: UpdateCompanyDto,
   ): Promise<Company> {
-    const company = await this.findOne(id);
-    Object.assign(company, updateCompanyDto);
-    return await this.companyRepository.save(company);
+    // First check if company exists
+    await this.findOne(company_code);
+
+    // If company_code is being updated, check if the new code already exists
+    if (
+      updateCompanyDto.company_code &&
+      updateCompanyDto.company_code !== company_code
+    ) {
+      const existingCompany = await this.companyRepository.findOne({
+        where: { company_code: updateCompanyDto.company_code },
+      });
+
+      if (existingCompany) {
+        throw new BadRequestException(
+          `Company with code ${updateCompanyDto.company_code} already exists`,
+        );
+      }
+    }
+
+    // Perform the update
+    await this.companyRepository.update(
+      { company_code },
+      {
+        ...updateCompanyDto,
+        updated_at: new Date(),
+      },
+    );
+
+    // Return the updated company
+    return await this.findOne(updateCompanyDto.company_code || company_code);
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.companyRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Company with ID "${id}" not found`);
-    }
+  async remove(company_code: string): Promise<void> {
+    const company = await this.findOne(company_code);
+    await this.companyRepository.remove(company);
+  }
+
+  async getAllCompanies(): Promise<Company[]> {
+    return await this.companyRepository.find();
   }
 }

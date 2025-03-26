@@ -111,38 +111,12 @@ export class QueryDetectionDto {
   end_date?: Date;
 
   @ApiProperty({
-    description: 'The district to filter by',
-    example: 'District 1',
+    description: 'Filter by approved status',
+    enum: ['yes', 'no', 'expired'],
+    example: 'yes',
     required: false,
   })
   @IsString()
   @IsOptional()
-  district?: string;
-
-  @ApiProperty({
-    description: 'The suspected offense to filter by',
-    example: 'Speeding',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  suspected_offense?: string;
-
-  @ApiProperty({
-    description: 'The vehicle type to filter by',
-    example: 'Car',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  vehicle_type?: string;
-
-  @ApiProperty({
-    description: 'The license plate to filter by',
-    example: 'ABC123',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  license_plate?: string;
+  approved?: string;
 }
