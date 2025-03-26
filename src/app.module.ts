@@ -1,0 +1,34 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import configuration from './config/configuration';
+import { getTypeOrmConfig } from './config/typeorm.config';
+import * as path from 'path';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { CompanyModule } from './modules/company/company.module';
+import { MonitorModule } from './modules/monitor/monitor.module';
+import { DetectionModule } from './modules/detection/detection.module';
+import { EngineModule } from './modules/engine/engine.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: path.resolve(`configurations/.env.${process.env.NODE_ENV}`),
+      load: [configuration],
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: getTypeOrmConfig,
+      inject: [ConfigService],
+    }),
+    CompanyModule,
+    EngineModule,
+    MonitorModule,
+    DetectionModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}

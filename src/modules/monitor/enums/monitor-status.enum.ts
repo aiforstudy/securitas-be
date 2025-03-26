@@ -1,0 +1,5 @@
+export enum MonitorStatus {
+  CONNECTED = 'CONNECTED',
+  DISCONNECTED = 'DISCONNECTED',
+  UNAVAILABLE = 'UNAVAILABLE',
+}
