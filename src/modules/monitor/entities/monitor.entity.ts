@@ -297,6 +297,7 @@ export class Monitor {
     description: 'The status of the monitor',
     enum: MonitorStatus,
     example: MonitorStatus.CONNECTED,
+    enumName: 'MonitorStatus',
   })
   @Column({
     type: 'enum',

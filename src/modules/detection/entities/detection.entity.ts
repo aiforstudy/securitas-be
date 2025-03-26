@@ -69,6 +69,7 @@ export class Detection {
     description: 'The status of the detection',
     enum: DetectionStatus,
     example: DetectionStatus.PENDING,
+    enumName: 'DetectionStatus',
   })
   @Column({
     type: 'enum',
@@ -81,6 +82,7 @@ export class Detection {
     description: 'The feedback status of the detection',
     enum: FeedbackStatus,
     example: FeedbackStatus.UNMARK,
+    enumName: 'FeedbackStatus',
   })
   @Column({
     type: 'enum',
