@@ -3,6 +3,12 @@
 # Exit on error
 set -e
 
+# Clean install dependencies
+echo "Cleaning and installing dependencies..."
+rm -rf node_modules
+rm -f package-lock.json
+npm install --legacy-peer-deps
+
 # Build the application
 echo "Building the application..."
 npm run build
@@ -17,7 +23,7 @@ cp configurations/.env.production dist/configurations/
 
 # Install production dependencies
 echo "Installing production dependencies..."
-npm ci --only=production
+npm ci --omit=dev
 
 # Start the application with PM2
 echo "Starting the application with PM2..."
