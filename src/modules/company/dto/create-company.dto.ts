@@ -14,7 +14,6 @@ export class CreateCompanyDto {
     description: 'The name of the company',
     example: 'Acme Corporation',
   })
-  @IsOptional()
   @IsString()
   name?: string;
 
@@ -55,6 +54,7 @@ export class CreateCompanyDto {
     description: 'The API key for the company',
     example: 'sk-1234567890abcdef',
   })
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   apikey: string;
@@ -63,6 +63,7 @@ export class CreateCompanyDto {
     description: 'The URL of the company logo',
     example: 'https://example.com/logo.png',
   })
+  @IsOptional()
   @IsNotEmpty()
   @IsString()
   logo_url: string;

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
@@ -61,6 +61,7 @@ export class CreateMonitorDto {
     example: '{"nodes": [], "edges": []}',
   })
   @IsString()
+  @IsOptional()
   graph: string;
 
   @ApiProperty({
