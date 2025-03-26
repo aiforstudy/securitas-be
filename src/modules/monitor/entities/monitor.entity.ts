@@ -375,8 +375,8 @@ export class Monitor {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => Company)
-  @JoinColumn({ name: 'company_code' })
+  @ManyToOne(() => Company, { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' })
+  @JoinColumn({ name: 'company_code', referencedColumnName: 'company_code' })
   company: Company;
 
   @Column({ type: 'json', nullable: true })

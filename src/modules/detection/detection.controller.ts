@@ -26,16 +26,16 @@ import { SearchDetectionDto } from './dto/search-detection.dto';
 export class DetectionController {
   constructor(private readonly detectionService: DetectionService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new detection' })
-  @ApiResponse({
-    status: 201,
-    description: 'The detection has been successfully created.',
-    type: Detection,
-  })
-  create(@Body() createDetectionDto: CreateDetectionDto): Promise<Detection> {
-    return this.detectionService.create(createDetectionDto);
-  }
+  // @Post()
+  // @ApiOperation({ summary: 'Create a new detection' })
+  // @ApiResponse({
+  //   status: 201,
+  //   description: 'The detection has been successfully created.',
+  //   type: Detection,
+  // })
+  // create(@Body() createDetectionDto: CreateDetectionDto): Promise<Detection> {
+  //   return this.detectionService.create(createDetectionDto);
+  // }
 
   @Post('incoming')
   @ApiOperation({ summary: 'Create a new detection' })

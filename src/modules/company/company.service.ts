@@ -6,6 +6,7 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { QueryCompanyDto } from './dto/query-company.dto';
 import { PaginatedCompanyDto } from './dto/paginated-company.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class CompanyService {
@@ -15,7 +16,13 @@ export class CompanyService {
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
-    const company = this.companyRepository.create(createCompanyDto);
+    // Ensure we have an ID
+    const companyData = {
+      ...createCompanyDto,
+      id: createCompanyDto.id || uuidv4(),
+    };
+
+    const company = this.companyRepository.create(companyData);
     return await this.companyRepository.save(company);
   }
 
@@ -60,7 +67,9 @@ export class CompanyService {
   }
 
   async remove(id: string): Promise<void> {
-    const company = await this.findOne(id);
-    await this.companyRepository.remove(company);
+    const result = await this.companyRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Company with ID "${id}" not found`);
+    }
   }
 }

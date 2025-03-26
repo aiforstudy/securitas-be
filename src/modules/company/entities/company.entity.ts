@@ -1,7 +1,7 @@
 import {
   Entity,
   Column,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,7 +13,7 @@ export class Company {
     description: 'The unique identifier of the company',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @PrimaryColumn('varchar', { length: 45 })
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({
@@ -27,14 +27,14 @@ export class Company {
     description: 'The unique code of the company',
     example: 'ACME001',
   })
-  @Column()
+  @Column({ unique: true })
   company_code: string;
 
   @ApiProperty({
     description: 'The selected project for the company',
     example: 'Project A',
   })
-  @Column({ nullable: true, length: 50 })
+  @Column({ nullable: true })
   selected_project: string;
 
   @ApiProperty({

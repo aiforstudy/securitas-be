@@ -1,11 +1,12 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
+  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 @Entity('engines')
 export class Engine {
@@ -18,14 +19,14 @@ export class Engine {
 
   @ApiProperty({
     description: 'The name of the engine',
-    example: 'Test Engine',
+    example: 'Face Detection Engine',
   })
   @Column()
   name: string;
 
   @ApiProperty({
     description: 'The description of the engine',
-    example: 'Test Engine Description',
+    example: 'Advanced face detection and recognition engine',
   })
   @Column({ nullable: true })
   description: string;
@@ -51,17 +52,19 @@ export class Engine {
   @Column()
   status: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'The icon of the engine',
     example: 'https://example.com/icon.png',
   })
+  @IsOptional()
   @Column()
   icon: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'The color of the engine',
     example: '#000000',
   })
+  @IsOptional()
   @Column()
   color: string;
 

@@ -16,7 +16,8 @@ import {
 } from './dto/statistics-detection.dto';
 import { SearchDetectionDto } from './dto/search-detection.dto';
 import { FeedbackStatus } from './enums/feedback-status.enum';
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 import { MonitorService } from '../monitor/monitor.service';
 import { EngineService } from '../engine/engine.service';
 
@@ -29,10 +30,10 @@ export class DetectionService {
     private readonly engineService: EngineService,
   ) {}
 
-  async create(createDetectionDto: CreateDetectionDto): Promise<Detection> {
-    const detection = this.detectionRepository.create(createDetectionDto);
-    return this.detectionRepository.save(detection);
-  }
+  // async create(createDetectionDto: CreateDetectionDto): Promise<Detection> {
+  //   const detection = this.detectionRepository.create(createDetectionDto);
+  //   return this.detectionRepository.save(detection);
+  // }
 
   async createIncomingDetection(
     createDetectionDto: CreateDetectionDto,
@@ -57,7 +58,7 @@ export class DetectionService {
       }
 
       const detection = new Detection();
-      detection.id = createDetectionDto.id;
+      detection.id = uuidv4();
       detection.timestamp = createDetectionDto.timestamp;
       detection.monitor_id = createDetectionDto.monitor_id;
       detection.engine = createDetectionDto.engine;

@@ -5,17 +5,28 @@ import {
   IsDate,
   IsObject,
   IsArray,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateCompanyDto {
+  @ApiProperty({
+    description: 'Company ID (UUID)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
+  })
+  @IsOptional()
+  @IsUUID()
+  id?: string = uuidv4();
+
   @ApiProperty({
     description: 'The name of the company',
     example: 'Acme Corporation',
   })
   @IsString()
-  name?: string;
+  name: string;
 
   @ApiProperty({
     description: 'The unique code of the company',

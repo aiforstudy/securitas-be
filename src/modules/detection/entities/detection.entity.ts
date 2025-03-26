@@ -50,7 +50,7 @@ export class Detection {
   @Column()
   zone: string;
 
-  @ManyToOne(() => Monitor)
+  @ManyToOne(() => Monitor, { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' })
   @JoinColumn({ name: 'monitor_id' })
   monitor: Monitor;
 
@@ -61,7 +61,7 @@ export class Detection {
   @Column()
   engine: string;
 
-  @ManyToOne(() => Engine)
+  @ManyToOne(() => Engine, { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' })
   @JoinColumn({ name: 'engine' })
   engineDetail: Engine;
 
