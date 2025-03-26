@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 @Entity('engines')
 export class Engine {
@@ -50,6 +50,20 @@ export class Engine {
   })
   @Column()
   status: string;
+
+  @ApiPropertyOptional({
+    description: 'The icon of the engine',
+    example: 'https://example.com/icon.png',
+  })
+  @Column()
+  icon: string;
+
+  @ApiPropertyOptional({
+    description: 'The color of the engine',
+    example: '#000000',
+  })
+  @Column()
+  color: string;
 
   @ApiProperty({
     description: 'The timestamp when the engine was created',
