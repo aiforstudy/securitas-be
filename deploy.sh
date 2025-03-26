@@ -19,6 +19,11 @@ cp configurations/.env.production dist/configurations/
 echo "Installing production dependencies..."
 npm ci --omit=dev --legacy-peer-deps
 
+echo "Setting up Nginx configuration..."
+sudo cp configurations/nginx/securitas.conf /etc/nginx/conf.d/
+sudo nginx -t
+sudo systemctl restart nginx
+
 echo "Starting the application with PM2..."
 pm2 start ecosystem.config.js --env production
 
