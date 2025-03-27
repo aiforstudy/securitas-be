@@ -28,7 +28,6 @@ export class CreateDetectionDto {
   })
   @IsDate()
   @Type(() => Date)
-  @IsOptional()
   timestamp?: Date;
 
   @ApiProperty({
@@ -125,4 +124,22 @@ export class CreateDetectionDto {
   @IsObject()
   @IsOptional()
   metadata?: Record<string, any>;
+
+  @ApiProperty({
+    description: 'URL to the detection image',
+    example: 'https://example.com/image.jpg',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  image_url?: string;
+
+  @ApiProperty({
+    description: 'URL to the detection video',
+    example: 'https://example.com/video.mp4',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  video_url?: string;
 }

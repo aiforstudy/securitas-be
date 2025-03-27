@@ -161,4 +161,10 @@ export class Detection {
   })
   @UpdateDateColumn({ type: 'datetime' })
   updated_at: Date;
+
+  @Column({ nullable: true })
+  image_url: string;
+
+  @Column({ nullable: true })
+  video_url: string;
 }

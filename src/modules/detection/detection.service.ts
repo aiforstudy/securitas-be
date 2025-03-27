@@ -66,6 +66,8 @@ export class DetectionService {
       detection.status = createDetectionDto.status;
       detection.alert = createDetectionDto.alert;
       detection.zone = createDetectionDto.zone;
+      detection.image_url = createDetectionDto.image_url;
+      detection.video_url = createDetectionDto.video_url;
       detection.approved = 'yes';
 
       return this.detectionRepository.save(detection);
