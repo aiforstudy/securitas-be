@@ -48,6 +48,10 @@ export class TelegramService {
         return false;
       }
 
+      this.logger.log(
+        `Sending message to Telegram group ${settings.telegram_group_id} -- ${this.BOT_TOKEN}`,
+      );
+
       // Send message to Telegram group
       const response = await axios.post(`${this.BASE_URL}/sendMessage`, {
         chat_id: settings.telegram_group_id,
