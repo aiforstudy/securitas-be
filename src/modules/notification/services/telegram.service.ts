@@ -48,26 +48,23 @@ export class TelegramService {
         return false;
       }
 
-      // Prepare request payload
-      const payload = {
+      // Send message to Telegram group
+      this.logger.log(
+        `Sending message to Telegram group ${settings.telegram_group_id} -- ${JSON.stringify(
+          {
+            chat_id: settings.telegram_group_id,
+            text: message,
+            parse_mode: 'HTML',
+            ...media,
+          },
+        )}`,
+      );
+      const response = await axios.post(`${this.BASE_URL}/sendMessage`, {
         chat_id: settings.telegram_group_id,
         text: message,
         parse_mode: 'HTML',
         ...media,
-      };
-
-      // Log curl command for debugging
-      const curlCommand = `curl --location '${this.BASE_URL}/sendMessage' \\
---header 'Content-Type: application/json' \\
---data '${JSON.stringify(payload)}'`;
-
-      this.logger.log('Telegram API Request:', curlCommand);
-
-      // Send message to Telegram group
-      const response = await axios.post(
-        `${this.BASE_URL}/sendMessage`,
-        payload,
-      );
+      });
 
       if (response.data.ok) {
         this.logger.log(
@@ -81,7 +78,9 @@ export class TelegramService {
         return false;
       }
     } catch (error) {
-      this.logger.error(`Error sending Telegram message: ${error.message}`);
+      this.logger.error(
+        `Error sending Telegram message: ${JSON.stringify(error)}`,
+      );
       return false;
     }
   }
