@@ -6,6 +6,7 @@ import { EngineModule } from '../engine/engine.module';
 import { MonitorModule } from '../monitor/monitor.module';
 import { CompanyNotificationSetting } from './entities/company-notification-setting.entity';
 import { TelegramService } from './services/telegram.service';
+import { ZaloService } from './services/zalo.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { TelegramService } from './services/telegram.service';
     EngineModule,
     MonitorModule,
   ],
-  providers: [TelegramService],
-  exports: [TelegramService],
+  providers: [TelegramService, ZaloService],
+  exports: [TelegramService, ZaloService],
 })
 export class NotificationModule {}

@@ -8,6 +8,10 @@ import { MonitorService } from '../../monitor/monitor.service';
 import fetch from 'node-fetch';
 import { ConfigService } from '@nestjs/config';
 import { format } from 'date-fns-tz';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 @Injectable()
 export class TelegramService {
@@ -49,18 +53,20 @@ export class TelegramService {
   }
 
   async sendMessage(
-    companyId: string,
+    company_code: string,
     message: string,
     media?: any,
   ): Promise<boolean> {
     try {
       // Get notification settings for the company
       const settings = await this.notificationSettingRepository.findOne({
-        where: { company_id: companyId },
+        where: { company_code },
       });
 
       if (!settings || !settings.telegram_group_id) {
-        this.logger.warn(`No Telegram group ID found for company ${companyId}`);
+        this.logger.warn(
+          `No Telegram group ID found for company ${company_code}`,
+        );
         return false;
       }
 
@@ -132,7 +138,7 @@ export class TelegramService {
   }
 
   async sendDetectionAlert(
-    companyId: string,
+    company_code: string,
     detection: {
       id: string;
       timestamp: Date;
@@ -145,9 +151,9 @@ export class TelegramService {
   ): Promise<boolean> {
     try {
       // Get company timezone using CompanyService
-      const company = await this.companyService.findOne(companyId);
+      const company = await this.companyService.findOne(company_code);
       if (!company) {
-        this.logger.warn(`Company not found: ${companyId}`);
+        this.logger.warn(`Company not found: ${company_code}`);
         return false;
       }
 
@@ -177,7 +183,8 @@ export class TelegramService {
         monitor,
         timezone,
       );
-      return await this.sendMessage(companyId, message, media);
+      // return await this.sendMessage(company_code, message, media);
+      return true;
     } catch (error) {
       this.logger.error(`Error sending detection alert: ${error.message}`);
       return false;
@@ -242,5 +249,113 @@ export class TelegramService {
     }
 
     return { message, media };
+  }
+
+  async sendMessagePure(
+    chatId: string,
+    message: string,
+    media?: { photo?: string; video?: string },
+  ): Promise<boolean> {
+    try {
+      let curlCommand = `curl -X POST "${this.BASE_URL}/sendMessage" `;
+      curlCommand += `-H "Content-Type: application/json" `;
+      curlCommand += `-d '{"chat_id":"${chatId}","text":"${message.replace(/"/g, '\\"')}","parse_mode":"HTML"}'`;
+
+      if (media?.photo) {
+        curlCommand = `curl -X POST "${this.BASE_URL}/sendPhoto" `;
+        curlCommand += `-H "Content-Type: application/json" `;
+        curlCommand += `-d '{"chat_id":"${chatId}","photo":"${media.photo}","caption":"${message.replace(/"/g, '\\"')}","parse_mode":"HTML"}'`;
+      } else if (media?.video) {
+        curlCommand = `curl -X POST "${this.BASE_URL}/sendVideo" `;
+        curlCommand += `-H "Content-Type: application/json" `;
+        curlCommand += `-d '{"chat_id":"${chatId}","video":"${media.video}","caption":"${message.replace(/"/g, '\\"')}","parse_mode":"HTML"}'`;
+      }
+
+      this.logger.log('Executing curl command:', curlCommand);
+
+      const { stdout, stderr } = await execAsync(curlCommand);
+      const response = JSON.parse(stdout);
+
+      if (response.ok) {
+        this.logger.log(`Message sent successfully to chat ${chatId}`);
+        return true;
+      } else {
+        this.logger.error(`Failed to send message: ${response.description}`);
+        return false;
+      }
+    } catch (error) {
+      this.logger.error('Error executing curl command:', error);
+      return false;
+    }
+  }
+
+  async sendDetectionAlertPure(
+    company_code: string,
+    detection: {
+      id: string;
+      timestamp: Date;
+      status: string;
+      engine: string;
+      monitor_id: string;
+      image_url?: string;
+      video_url?: string;
+    },
+  ): Promise<boolean> {
+    try {
+      // Get notification settings for the company
+      const settings = await this.notificationSettingRepository.findOne({
+        where: { company_code },
+      });
+
+      if (!settings || !settings.telegram_group_id) {
+        this.logger.warn(
+          `No Telegram group ID found for company ${company_code}`,
+        );
+        return false;
+      }
+
+      // Get company timezone using CompanyService
+      const company = await this.companyService.findOne(company_code);
+      if (!company) {
+        this.logger.warn(`Company not found: ${company_code}`);
+        return false;
+      }
+
+      // Get engine details
+      const engine = await this.engineService.findOne(detection.engine);
+      if (!engine) {
+        this.logger.warn(`Engine not found: ${detection.engine}`);
+        return false;
+      }
+
+      // Get monitor details
+      const monitor = await this.monitorService.findOne(detection.monitor_id);
+      if (!monitor) {
+        this.logger.warn(`Monitor not found: ${detection.monitor_id}`);
+        return false;
+      }
+
+      // Get timezone from locale settings, default to UTC if not set
+      const timezone = company.locale?.timezone || 'UTC';
+      const { message, media } = this.formatDetectionMessage(
+        detection,
+        {
+          name: company.name,
+          locale: company.locale as any,
+        },
+        engine,
+        monitor,
+        timezone,
+      );
+
+      return await this.sendMessagePure(
+        settings.telegram_group_id,
+        message,
+        media,
+      );
+    } catch (error) {
+      this.logger.error(`Error sending detection alert: ${error.message}`);
+      return false;
+    }
   }
 }

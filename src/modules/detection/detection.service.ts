@@ -12,16 +12,16 @@ import { UpdateDetectionDto } from './dto/update-detection.dto';
 import { QueryDetectionDto } from './dto/query-detection.dto';
 import { PaginatedDetectionDto } from './dto/paginated-detection.dto';
 import {
-  StatisticsDetectionDto,
   DetectionStatisticsResponseDto,
+  DetectionStatisticsDataDto,
+  StatisticsDetectionDto,
 } from './dto/statistics-detection.dto';
-import { SearchDetectionDto } from './dto/search-detection.dto';
-import { FeedbackStatus } from './enums/feedback-status.enum';
 import { v4 as uuidv4 } from 'uuid';
 import { MonitorService } from '../monitor/monitor.service';
 import { EngineService } from '../engine/engine.service';
-import { Engine } from '../engine/entities/engine.entity';
+import { ZaloService } from '../notification/services/zalo.service';
 import { TelegramService } from '../notification/services/telegram.service';
+import { SearchDetectionDto } from './dto/search-detection.dto';
 
 @Injectable()
 export class DetectionService {
@@ -33,12 +33,8 @@ export class DetectionService {
     private readonly monitorService: MonitorService,
     private readonly engineService: EngineService,
     private readonly telegramService: TelegramService,
+    private readonly zaloService: ZaloService,
   ) {}
-
-  // async create(createDetectionDto: CreateDetectionDto): Promise<Detection> {
-  //   const detection = this.detectionRepository.create(createDetectionDto);
-  //   return this.detectionRepository.save(detection);
-  // }
 
   async createIncomingDetection(
     createDetectionDto: CreateDetectionDto,
@@ -62,16 +58,21 @@ export class DetectionService {
       });
       const savedDetection = await this.detectionRepository.save(detection);
 
-      // Send Telegram notification
-      await this.telegramService.sendDetectionAlert(monitor.company_code, {
-        id: savedDetection.id,
-        timestamp: savedDetection.timestamp,
-        status: savedDetection.status,
-        engine: savedDetection.engine,
-        monitor_id: savedDetection.monitor_id,
-        image_url: savedDetection.image_url,
-        video_url: savedDetection.video_url,
-      });
+      // Send notification via Zalo
+      // await this.zaloService.sendDetectionAlert(monitor.company_code, {
+      //   id: savedDetection.id,
+      //   timestamp: savedDetection.timestamp,
+      //   status: savedDetection.status,
+      //   engine: savedDetection.engine,
+      //   monitor_id: savedDetection.monitor_id,
+      //   image_url: savedDetection.image_url,
+      //   video_url: savedDetection.video_url,
+      // });
+
+      this.telegramService.sendDetectionAlertPure(
+        monitor.company_code,
+        savedDetection,
+      );
 
       return savedDetection;
     } catch (error) {
@@ -182,77 +183,75 @@ export class DetectionService {
   async getStatistics(
     query: StatisticsDetectionDto,
   ): Promise<DetectionStatisticsResponseDto> {
-    const { from, to } = query;
+    try {
+      // Get all engines for this company
+      const engines = await this.engineService.getAllEngines();
 
-    // Get all unique engines with their details
-    const engines = await this.engineService.getAllEngines();
+      // Get detection counts for each engine and date
+      const queryBuilder = this.detectionRepository
+        .createQueryBuilder('detection')
+        .select('detection.engine_id', 'engine_id')
+        .addSelect(
+          `DATE_TRUNC('${query.group_by}', detection.timestamp)`,
+          'timestamp',
+        )
+        .addSelect('COUNT(*)', 'count')
+        .andWhere('detection.timestamp >= :from', { from: query.from })
+        .andWhere('detection.timestamp <= :to', { to: query.to });
 
-    // Create a map for quick lookup of engine details
-    const engineDetailsMap = engines.reduce(
-      (acc, engine) => {
-        acc[engine.id] = engine;
-        return acc;
-      },
-      {} as Record<string, Engine>,
-    );
+      const results = await queryBuilder
+        .groupBy('detection.engine_id')
+        .addGroupBy('timestamp')
+        .getRawMany();
 
-    // Get all detections within the date range
-    const detections = await this.detectionRepository
-      .createQueryBuilder('detection')
-      .select('detection.engine', 'engine')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect('DATE(detection.timestamp)', 'date')
-      .where('detection.timestamp BETWEEN :from AND :to', { from, to })
-      .groupBy('detection.engine')
-      .addGroupBy('date')
-      .getRawMany();
-
-    // Generate all dates in the range
-    const dates: Date[] = [];
-    let currentDate = new Date(from);
-    while (currentDate <= to) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    // Create a map for quick lookup of detection counts
-    const detectionCountsMap = detections.reduce(
-      (acc, detection) => {
-        const date = detection.date.toISOString().split('T')[0];
-        if (!acc[date]) {
-          acc[date] = {};
-        }
-        acc[date][detection.engine] = parseInt(detection.count);
-        return acc;
-      },
-      {} as Record<string, Record<string, number>>,
-    );
-
-    // Generate the response data
-    const data = dates.map((date) => {
-      const dateStr = date.toISOString().split('T')[0];
-      const counts: Record<string, number> = {};
-
-      // Initialize counts for all engines to 0
-      engines.forEach((engine) => {
-        counts[engine.id] = 0;
+      // Create a map for quick lookup of counts
+      const countMap = new Map<string, number>();
+      results.forEach((result) => {
+        const key = `${result.engine_id}_${result.timestamp}`;
+        countMap.set(key, parseInt(result.count));
       });
 
-      // Update counts with actual detection data if available
-      if (detectionCountsMap[dateStr]) {
-        Object.assign(counts, detectionCountsMap[dateStr]);
+      // Generate all dates in the range
+      const dates: Date[] = [];
+      const currentDate = new Date(query.from);
+      while (currentDate <= new Date(query.to)) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      return {
-        timestamp: date,
-        ...counts,
-      };
-    });
+      // Generate all combinations of engines and dates
+      const data: DetectionStatisticsDataDto[] = dates.map((date) => {
+        const timestamp = date.toISOString();
+        const engineCounts: Record<string, number> = {};
+        engines.forEach((engine) => {
+          const key = `${engine.id}_${timestamp}`;
+          engineCounts[engine.id] = countMap.get(key) || 0;
+        });
 
-    return {
-      data,
-      engines: engineDetailsMap,
-    };
+        return {
+          timestamp,
+          ...engineCounts,
+        };
+      });
+
+      // Create engine details map
+      const enginesMap: Record<string, { name: string; description?: string }> =
+        {};
+      engines.forEach((engine) => {
+        enginesMap[engine.id] = {
+          name: engine.name,
+          description: engine.description,
+        };
+      });
+
+      return {
+        data,
+        engines: enginesMap,
+      };
+    } catch (error) {
+      this.logger.error(`Error getting statistics: ${error.message}`);
+      throw error;
+    }
   }
 
   async searchDetections(query: SearchDetectionDto): Promise<Detection[]> {
@@ -266,6 +265,7 @@ export class DetectionService {
 
     const queryBuilder = this.detectionRepository
       .createQueryBuilder('detection')
+      .leftJoinAndSelect('detection.engine', 'engine')
       .leftJoinAndSelect('detection.monitor', 'monitor')
       .leftJoinAndSelect('detection.engineDetail', 'engineDetail')
       .orderBy('detection.timestamp', 'DESC');
@@ -276,42 +276,27 @@ export class DetectionService {
       });
     }
 
-    if (company_name) {
-      queryBuilder.andWhere('monitor.company_code LIKE :companyName', {
-        companyName: `%${company_name}%`,
-      });
+    if (query) {
+      queryBuilder.andWhere(
+        '(detection.id ILIKE :query OR engine.name ILIKE :query OR monitor.name ILIKE :query)',
+        { query: `%${query}%` },
+      );
     }
 
-    if (detection_id) {
-      queryBuilder.andWhere('detection.id = :detectionId', {
-        detectionId: detection_id,
-      });
-    }
+    // if (from) {
+    //   queryBuilder.andWhere('detection.timestamp >= :from', { from });
+    // }
 
-    if (status) {
-      queryBuilder.andWhere('detection.status = :status', { status });
-    }
+    // if (to) {
+    //   queryBuilder.andWhere('detection.timestamp <= :to', { to });
+    // }
 
-    if (approval_status) {
-      switch (approval_status) {
-        case 'yes':
-          queryBuilder.andWhere('detection.feedback_status = :feedbackStatus', {
-            feedbackStatus: FeedbackStatus.APPROVED,
-          });
-          break;
-        case 'no':
-          queryBuilder.andWhere('detection.feedback_status = :feedbackStatus', {
-            feedbackStatus: FeedbackStatus.REJECTED,
-          });
-          break;
-        case 'expired':
-          queryBuilder.andWhere('detection.feedback_status = :feedbackStatus', {
-            feedbackStatus: FeedbackStatus.UNMARK,
-          });
-          break;
-      }
-    }
+    // if (monitor_id) {
+    //   queryBuilder.andWhere('detection.monitor_id = :monitor_id', {
+    //     monitor_id,
+    //   });
+    // }
 
-    return queryBuilder.getMany();
+    return await queryBuilder.getMany();
   }
 }

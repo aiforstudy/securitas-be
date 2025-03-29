@@ -1,11 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDate, IsEnum, IsObject, IsArray } from 'class-validator';
+import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Engine } from '../../engine/entities/engine.entity';
 
 export class StatisticsDetectionDto {
   @ApiProperty({
-    description: 'Start date for statistics',
+    description: 'Start date for statistics in ISO 8601 format',
     example: '2024-03-14T00:00:00Z',
   })
   @IsDate()
@@ -13,7 +12,7 @@ export class StatisticsDetectionDto {
   from: Date;
 
   @ApiProperty({
-    description: 'End date for statistics',
+    description: 'End date for statistics in ISO 8601 format',
     example: '2024-03-14T23:59:59Z',
   })
   @IsDate()
@@ -21,48 +20,41 @@ export class StatisticsDetectionDto {
   to: Date;
 
   @ApiProperty({
-    description: 'Timezone string (e.g., Asia/Ho_Chi_Minh)',
-    example: 'Asia/Ho_Chi_Minh',
-  })
-  @IsString()
-  timezone: string;
-
-  @ApiProperty({
-    description: 'Group by day or hour',
-    example: 'day',
+    description: 'Group by time unit',
     enum: ['day', 'hour'],
+    default: 'day',
   })
-  @IsString()
-  group_by: 'day' | 'hour';
+  @IsEnum(['day', 'hour'])
+  @IsOptional()
+  group_by?: 'day' | 'hour' = 'day';
 }
 
 export class DetectionStatisticsDataDto {
   @ApiProperty({
-    description: 'Timestamp of the statistics',
+    description: 'Timestamp of the statistics entry in ISO 8601 format',
     example: '2024-03-14T00:00:00Z',
   })
-  timestamp: Date;
+  @IsString()
+  timestamp: string;
 
-  // Dynamic properties for engine counts
-  [key: string]: number | Date;
+  [key: string]: string | number;
 }
 
 export class DetectionStatisticsResponseDto {
   @ApiProperty({
-    description: 'Array of statistics data by timestamp',
+    description: 'Array of statistics data',
     type: [DetectionStatisticsDataDto],
   })
-  @IsArray()
   data: DetectionStatisticsDataDto[];
 
   @ApiProperty({
-    description: 'Engine details for each engine',
-    type: 'object',
-    additionalProperties: {
-      type: 'object',
-      $ref: '#/components/schemas/Engine',
+    description: 'Map of engine details',
+    example: {
+      'engine-id-1': {
+        name: 'Engine 1',
+        description: 'Description of Engine 1',
+      },
     },
   })
-  @IsObject()
-  engines: Record<string, Engine>;
+  engines: Record<string, { name: string; description?: string }>;
 }
