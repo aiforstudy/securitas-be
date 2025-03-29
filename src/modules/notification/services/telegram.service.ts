@@ -5,7 +5,7 @@ import { CompanyNotificationSetting } from '../entities/company-notification-set
 import { CompanyService } from '../../company/company.service';
 import { EngineService } from '../../engine/engine.service';
 import { MonitorService } from '../../monitor/monitor.service';
-import axios, { AxiosError } from 'axios';
+import fetch from 'node-fetch';
 import { ConfigService } from '@nestjs/config';
 import { format } from 'date-fns-tz';
 
@@ -81,40 +81,51 @@ export class TelegramService {
 
       // Send message with retry logic
       const response = await this.retryRequest(async () => {
-        return axios.post(`${this.BASE_URL}/sendMessage`, payload, {
-          timeout: this.TIMEOUT,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
+
+        try {
+          const res = await fetch(`${this.BASE_URL}/sendMessage`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+          return res;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
+        }
       });
 
-      if (response.data.ok) {
+      const data = await response.json();
+
+      if (data.ok) {
         this.logger.log(
           `Message sent successfully to group ${settings.telegram_group_id}`,
         );
         return true;
       } else {
-        this.logger.error(
-          `Failed to send message: ${response.data.description}`,
-        );
+        this.logger.error(`Failed to send message: ${data.description}`);
         return false;
       }
     } catch (error) {
-      if (error instanceof AxiosError) {
+      if (error.name === 'AbortError') {
+        this.logger.error('Telegram API Timeout:', {
+          message: 'Request timed out',
+          timeout: this.TIMEOUT,
+        });
+      } else if (error instanceof Error) {
         this.logger.error('Telegram API Error:', {
           message: error.message,
-          code: error.code,
-          status: error.response?.status,
-          data: error.response?.data,
-          config: {
-            url: error.config?.url,
-            method: error.config?.method,
-            timeout: error.config?.timeout,
-          },
+          stack: error.stack,
         });
       } else {
-        this.logger.error(`Error sending Telegram message: ${error.message}`);
+        this.logger.error(`Error sending Telegram message: ${error}`);
       }
       return false;
     }
