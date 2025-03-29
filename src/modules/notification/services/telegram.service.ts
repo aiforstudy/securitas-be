@@ -48,24 +48,35 @@ export class TelegramService {
         return false;
       }
 
+      // Prepare the request payload
+      const payload: any = {
+        chat_id: settings.telegram_group_id,
+        parse_mode: 'HTML',
+      };
+
+      // If media is provided, use it as the primary message
+      if (media) {
+        if (media.photo) {
+          payload.photo = media.photo;
+          payload.caption = media.caption;
+        } else if (media.video) {
+          payload.video = media.video;
+          payload.caption = media.caption;
+        }
+      } else {
+        // If no media, send text message
+        payload.text = message;
+      }
+
       this.logger.log(
-        `Sending message to Telegram group ${settings.telegram_group_id} -- ${JSON.stringify(
-          {
-            chat_id: settings.telegram_group_id,
-            text: message,
-            parse_mode: 'HTML',
-            ...media,
-          },
-        )}`,
+        `Sending message to Telegram group ${settings.telegram_group_id} -- ${JSON.stringify(payload)}`,
       );
 
       // Send message to Telegram group
-      const response = await axios.post(`${this.BASE_URL}/sendMessage`, {
-        chat_id: settings.telegram_group_id,
-        text: message,
-        parse_mode: 'HTML',
-        ...media,
-      });
+      const response = await axios.post(
+        `${this.BASE_URL}/sendMessage`,
+        payload,
+      );
 
       if (response.data.ok) {
         this.logger.log(
