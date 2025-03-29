@@ -2,9 +2,10 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Like, Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Detection } from './entities/detection.entity';
 import { CreateDetectionDto } from './dto/create-detection.dto';
 import { UpdateDetectionDto } from './dto/update-detection.dto';
@@ -16,19 +17,22 @@ import {
 } from './dto/statistics-detection.dto';
 import { SearchDetectionDto } from './dto/search-detection.dto';
 import { FeedbackStatus } from './enums/feedback-status.enum';
-import { parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { MonitorService } from '../monitor/monitor.service';
 import { EngineService } from '../engine/engine.service';
 import { Engine } from '../engine/entities/engine.entity';
+import { TelegramService } from '../notification/services/telegram.service';
 
 @Injectable()
 export class DetectionService {
+  private readonly logger = new Logger(DetectionService.name);
+
   constructor(
     @InjectRepository(Detection)
     private readonly detectionRepository: Repository<Detection>,
     private readonly monitorService: MonitorService,
     private readonly engineService: EngineService,
+    private readonly telegramService: TelegramService,
   ) {}
 
   // async create(createDetectionDto: CreateDetectionDto): Promise<Detection> {
@@ -40,39 +44,39 @@ export class DetectionService {
     createDetectionDto: CreateDetectionDto,
   ): Promise<Detection> {
     try {
-      if (
-        !createDetectionDto.monitor_id ||
-        !createDetectionDto.engine ||
-        !createDetectionDto.timestamp ||
-        !createDetectionDto.zone
-      ) {
-        throw new BadRequestException('Missing required fields');
+      // Get monitor details to get company_code
+      const monitor = await this.monitorService.findOne(
+        createDetectionDto.monitor_id,
+      );
+      if (!monitor) {
+        throw new NotFoundException(
+          `Monitor not found: ${createDetectionDto.monitor_id}`,
+        );
       }
 
-      const [monitor, engine] = await Promise.all([
-        this.monitorService.findOne(createDetectionDto.monitor_id),
-        this.engineService.findOne(createDetectionDto.engine),
-      ]);
+      // Create the detection
+      const detection = this.detectionRepository.create({
+        ...createDetectionDto,
+        id: createDetectionDto.id || uuidv4(),
+        approved: 'yes',
+      });
+      const savedDetection = await this.detectionRepository.save(detection);
 
-      if (!monitor || !engine) {
-        throw new NotFoundException('Monitor or engine not found');
-      }
+      // Send Telegram notification
+      await this.telegramService.sendDetectionAlert(monitor.company_code, {
+        id: savedDetection.id,
+        timestamp: savedDetection.timestamp,
+        status: savedDetection.status,
+        engine: savedDetection.engine,
+        monitor_id: savedDetection.monitor_id,
+        image_url: savedDetection.image_url,
+        video_url: savedDetection.video_url,
+      });
 
-      const detection = new Detection();
-      detection.id = uuidv4();
-      detection.timestamp = createDetectionDto.timestamp;
-      detection.monitor_id = createDetectionDto.monitor_id;
-      detection.engine = createDetectionDto.engine;
-      detection.status = createDetectionDto.status;
-      detection.alert = createDetectionDto.alert;
-      detection.zone = createDetectionDto.zone;
-      detection.image_url = createDetectionDto.image_url;
-      detection.video_url = createDetectionDto.video_url;
-      detection.approved = 'yes';
-
-      return this.detectionRepository.save(detection);
+      return savedDetection;
     } catch (error) {
-      throw new BadRequestException(error);
+      this.logger.error(`Error creating incoming detection: ${error.message}`);
+      throw error;
     }
   }
 
