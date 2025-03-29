@@ -48,29 +48,20 @@ export class TelegramService {
         return false;
       }
 
-      // Prepare the request payload
-      const payload: any = {
+      // Prepare request payload
+      const payload = {
         chat_id: settings.telegram_group_id,
+        text: message,
         parse_mode: 'HTML',
+        ...media,
       };
 
-      // If media is provided, use it as the primary message
-      if (media) {
-        if (media.photo) {
-          payload.photo = media.photo;
-          payload.caption = media.caption;
-        } else if (media.video) {
-          payload.video = media.video;
-          payload.caption = media.caption;
-        }
-      } else {
-        // If no media, send text message
-        payload.text = message;
-      }
+      // Log curl command for debugging
+      const curlCommand = `curl --location '${this.BASE_URL}/sendMessage' \\
+--header 'Content-Type: application/json' \\
+--data '${JSON.stringify(payload)}'`;
 
-      this.logger.log(
-        `Sending message to Telegram group ${settings.telegram_group_id} -- ${JSON.stringify(payload)}`,
-      );
+      this.logger.log('Telegram API Request:', curlCommand);
 
       // Send message to Telegram group
       const response = await axios.post(
