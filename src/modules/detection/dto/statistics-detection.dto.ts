@@ -4,20 +4,36 @@ import { Type } from 'class-transformer';
 
 export class StatisticsDetectionDto {
   @ApiProperty({
-    description: 'Start date for statistics in ISO 8601 format',
+    description: 'The company code',
+    example: 'company-123',
+  })
+  @IsString()
+  company_code: string;
+
+  @ApiProperty({
+    description: 'Start date for statistics',
     example: '2024-03-14T00:00:00Z',
   })
-  @IsDate()
   @Type(() => Date)
+  @IsDate()
   from: Date;
 
   @ApiProperty({
-    description: 'End date for statistics in ISO 8601 format',
+    description: 'End date for statistics',
     example: '2024-03-14T23:59:59Z',
   })
-  @IsDate()
   @Type(() => Date)
+  @IsDate()
   to: Date;
+
+  @ApiProperty({
+    description: 'Timezone for date formatting',
+    example: 'Asia/Ho_Chi_Minh',
+    default: 'UTC',
+  })
+  @IsString()
+  @IsOptional()
+  timezone?: string = 'UTC';
 
   @ApiProperty({
     description: 'Group by time unit',
@@ -27,6 +43,11 @@ export class StatisticsDetectionDto {
   @IsEnum(['day', 'hour'])
   @IsOptional()
   group_by?: 'day' | 'hour' = 'day';
+}
+
+export interface StatisticsResultDto {
+  timestamp: string;
+  [key: string]: string | number;
 }
 
 export class DetectionStatisticsDataDto {

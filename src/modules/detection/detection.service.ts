@@ -15,6 +15,7 @@ import {
   DetectionStatisticsResponseDto,
   DetectionStatisticsDataDto,
   StatisticsDetectionDto,
+  StatisticsResultDto,
 } from './dto/statistics-detection.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { MonitorService } from '../monitor/monitor.service';
@@ -22,6 +23,9 @@ import { EngineService } from '../engine/engine.service';
 import { ZaloService } from '../notification/services/zalo.service';
 import { TelegramService } from '../notification/services/telegram.service';
 import { SearchDetectionDto } from './dto/search-detection.dto';
+import { eachDayOfInterval, eachHourOfInterval } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { QueryMonitorDto } from '../monitor/dto/query-monitor.dto';
 
 @Injectable()
 export class DetectionService {
@@ -48,6 +52,20 @@ export class DetectionService {
         throw new NotFoundException(
           `Monitor not found: ${createDetectionDto.monitor_id}`,
         );
+      }
+
+      // Check if detection with the same ID already exists
+      if (createDetectionDto.id) {
+        const existingDetection = await this.detectionRepository.findOne({
+          where: { id: createDetectionDto.id },
+        });
+
+        if (existingDetection) {
+          this.logger.warn(
+            `Detection with ID ${createDetectionDto.id} already exists. Skipping...`,
+          );
+          return existingDetection;
+        }
       }
 
       // Create the detection
@@ -172,7 +190,7 @@ export class DetectionService {
   ): Promise<Detection> {
     const detection = await this.findOne(id);
     const updatedDetection = Object.assign(detection, updateDetectionDto);
-    return this.detectionRepository.save(updatedDetection);
+    return await this.detectionRepository.save(updatedDetection);
   }
 
   async remove(id: string): Promise<void> {
@@ -181,72 +199,124 @@ export class DetectionService {
   }
 
   async getStatistics(
-    query: StatisticsDetectionDto,
+    company_code: string,
+    startDate: Date,
+    endDate: Date,
+    timezone: string = 'UTC',
+    groupBy: 'day' | 'hour' = 'day',
   ): Promise<DetectionStatisticsResponseDto> {
     try {
-      // Get all engines for this company
-      const engines = await this.engineService.getAllEngines();
+      // Get all monitors for the company
+      const query: QueryMonitorDto = {
+        company_code,
+        page: 1,
+        limit: 1000, // Get all monitors
+      };
+      const monitors = await this.monitorService.findAll(query);
 
-      // Get detection counts for each engine and date
-      const queryBuilder = this.detectionRepository
-        .createQueryBuilder('detection')
-        .select('detection.engine_id', 'engine_id')
-        .addSelect(
-          `DATE_TRUNC('${query.group_by}', detection.timestamp)`,
-          'timestamp',
-        )
-        .addSelect('COUNT(*)', 'count')
-        .andWhere('detection.timestamp >= :from', { from: query.from })
-        .andWhere('detection.timestamp <= :to', { to: query.to });
-
-      const results = await queryBuilder
-        .groupBy('detection.engine_id')
-        .addGroupBy('timestamp')
-        .getRawMany();
-
-      // Create a map for quick lookup of counts
-      const countMap = new Map<string, number>();
-      results.forEach((result) => {
-        const key = `${result.engine_id}_${result.timestamp}`;
-        countMap.set(key, parseInt(result.count));
-      });
-
-      // Generate all dates in the range
-      const dates: Date[] = [];
-      const currentDate = new Date(query.from);
-      while (currentDate <= new Date(query.to)) {
-        dates.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
+      if (!monitors || monitors.data.length === 0) {
+        this.logger.warn(`No monitors found for company ${company_code}`);
+        return {
+          data: [],
+          engines: {},
+        };
       }
 
-      // Generate all combinations of engines and dates
-      const data: DetectionStatisticsDataDto[] = dates.map((date) => {
-        const timestamp = date.toISOString();
-        const engineCounts: Record<string, number> = {};
-        engines.forEach((engine) => {
-          const key = `${engine.id}_${timestamp}`;
-          engineCounts[engine.id] = countMap.get(key) || 0;
-        });
+      // Get monitor IDs
+      const monitorIds = monitors.data.map((monitor) => monitor.id);
+
+      // Get all detections for these monitors within the date range
+      const detections = await this.detectionRepository
+        .createQueryBuilder('detection')
+        .where('detection.monitor_id IN (:...monitorIds)', { monitorIds })
+        .andWhere('detection.timestamp BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        })
+        .orderBy('detection.timestamp', 'ASC')
+        .getMany();
+
+      // Get unique engines from detections
+      const engines = [...new Set(detections.map((d) => d.engine))];
+
+      // Get engine details
+      const engineDetails = await Promise.all(
+        engines.map(async (engineId) => {
+          const engine = await this.engineService.findOne(engineId);
+          return {
+            id: engineId,
+            name: engine?.name || engineId,
+            description: engine?.description,
+          };
+        }),
+      );
+
+      // Generate time intervals based on groupBy
+      const timeIntervals =
+        groupBy === 'day'
+          ? eachDayOfInterval({ start: startDate, end: endDate })
+          : eachHourOfInterval({ start: startDate, end: endDate });
+
+      // Create a map of detections by timestamp
+      const detectionsMap = detections.reduce((acc, detection) => {
+        const timestamp = formatInTimeZone(
+          detection.timestamp,
+          timezone,
+          groupBy === 'day' ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:00:00',
+        );
+
+        if (!acc[timestamp]) {
+          acc[timestamp] = {
+            timestamp,
+            engines: {},
+          };
+        }
+
+        if (!acc[timestamp].engines[detection.engine]) {
+          acc[timestamp].engines[detection.engine] = 0;
+        }
+
+        acc[timestamp].engines[detection.engine]++;
+        return acc;
+      }, {});
+
+      // Generate complete statistics with zero values for missing intervals
+      const statistics = timeIntervals.map((date) => {
+        const timestamp = formatInTimeZone(
+          date,
+          timezone,
+          groupBy === 'day' ? 'yyyy-MM-dd' : 'yyyy-MM-dd HH:00:00',
+        );
+
+        const existingData = detectionsMap[timestamp] || {
+          timestamp,
+          engines: {},
+        };
+
+        // Fill zero values for all engines
+        const enginesWithZeros = engines.reduce((acc, engine) => {
+          acc[engine] = existingData.engines[engine] || 0;
+          return acc;
+        }, {});
 
         return {
           timestamp,
-          ...engineCounts,
+          ...enginesWithZeros,
         };
       });
 
-      // Create engine details map
-      const enginesMap: Record<string, { name: string; description?: string }> =
-        {};
-      engines.forEach((engine) => {
-        enginesMap[engine.id] = {
+      // Convert engine details array to record
+      const enginesRecord = engineDetails.reduce((acc, engine) => {
+        acc[engine.id] = {
           name: engine.name,
           description: engine.description,
         };
-      });
+        return acc;
+      }, {});
 
       return {
-        data,
-        engines: enginesMap,
+        data: statistics,
+        engines: enginesRecord,
       };
     } catch (error) {
       this.logger.error(`Error getting statistics: ${error.message}`);
@@ -254,21 +324,32 @@ export class DetectionService {
     }
   }
 
-  async searchDetections(query: SearchDetectionDto): Promise<Detection[]> {
+  async searchDetections(
+    query: SearchDetectionDto,
+  ): Promise<PaginatedDetectionDto> {
     const {
       monitor_name,
-      company_name,
       detection_id,
       status,
-      approval_status,
+      approved,
+      company_code,
+      from,
+      to,
+      page = 1,
+      limit = 10,
     } = query;
 
     const queryBuilder = this.detectionRepository
       .createQueryBuilder('detection')
-      .leftJoinAndSelect('detection.engine', 'engine')
       .leftJoinAndSelect('detection.monitor', 'monitor')
       .leftJoinAndSelect('detection.engineDetail', 'engineDetail')
       .orderBy('detection.timestamp', 'DESC');
+
+    if (company_code) {
+      queryBuilder.andWhere('monitor.company_code = :companyCode', {
+        companyCode: company_code,
+      });
+    }
 
     if (monitor_name) {
       queryBuilder.andWhere('monitor.name LIKE :monitorName', {
@@ -276,27 +357,50 @@ export class DetectionService {
       });
     }
 
-    if (query) {
-      queryBuilder.andWhere(
-        '(detection.id ILIKE :query OR engine.name ILIKE :query OR monitor.name ILIKE :query)',
-        { query: `%${query}%` },
-      );
+    if (detection_id) {
+      queryBuilder.andWhere('detection.id = :detectionId', {
+        detectionId: detection_id,
+      });
     }
 
-    // if (from) {
-    //   queryBuilder.andWhere('detection.timestamp >= :from', { from });
-    // }
+    if (status) {
+      queryBuilder.andWhere('detection.status = :status', {
+        status,
+      });
+    }
 
-    // if (to) {
-    //   queryBuilder.andWhere('detection.timestamp <= :to', { to });
-    // }
+    if (approved) {
+      queryBuilder.andWhere('detection.approved = :approved', {
+        approved,
+      });
+    }
 
-    // if (monitor_id) {
-    //   queryBuilder.andWhere('detection.monitor_id = :monitor_id', {
-    //     monitor_id,
-    //   });
-    // }
+    if (from) {
+      queryBuilder.andWhere('detection.timestamp >= :from', {
+        from: new Date(from),
+      });
+    }
 
-    return await queryBuilder.getMany();
+    if (to) {
+      queryBuilder.andWhere('detection.timestamp <= :to', {
+        to: new Date(to),
+      });
+    }
+
+    const skip = (page - 1) * limit;
+    const [data, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const total_pages = Math.ceil(total / limit);
+
+    return {
+      data,
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      total_pages,
+    };
   }
 }

@@ -50,7 +50,13 @@ export class DetectionController {
   getStatistics(
     @Query() query: StatisticsDetectionDto,
   ): Promise<DetectionStatisticsResponseDto> {
-    return this.detectionService.getStatistics(query);
+    return this.detectionService.getStatistics(
+      query.company_code,
+      query.from,
+      query.to,
+      query.timezone,
+      query.group_by,
+    );
   }
 
   @Get('search')
@@ -61,7 +67,9 @@ export class DetectionController {
     description: 'Return filtered detections sorted by timestamp.',
     type: [Detection],
   })
-  searchDetections(@Query() query: SearchDetectionDto): Promise<Detection[]> {
+  searchDetections(
+    @Query() query: SearchDetectionDto,
+  ): Promise<PaginatedDetectionDto> {
     return this.detectionService.searchDetections(query);
   }
 
