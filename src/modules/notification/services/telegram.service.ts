@@ -49,7 +49,14 @@ export class TelegramService {
       }
 
       this.logger.log(
-        `Sending message to Telegram group ${settings.telegram_group_id} -- ${this.BOT_TOKEN}`,
+        `Sending message to Telegram group ${settings.telegram_group_id} -- ${JSON.stringify(
+          {
+            chat_id: settings.telegram_group_id,
+            text: message,
+            parse_mode: 'HTML',
+            ...media,
+          },
+        )}`,
       );
 
       // Send message to Telegram group
