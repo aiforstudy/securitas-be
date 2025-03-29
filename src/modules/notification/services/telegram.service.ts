@@ -5,7 +5,7 @@ import { CompanyNotificationSetting } from '../entities/company-notification-set
 import { CompanyService } from '../../company/company.service';
 import { EngineService } from '../../engine/engine.service';
 import { MonitorService } from '../../monitor/monitor.service';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { format } from 'date-fns-tz';
 
@@ -14,6 +14,8 @@ export class TelegramService {
   private readonly logger = new Logger(TelegramService.name);
   private readonly BOT_TOKEN: string;
   private readonly BASE_URL: string;
+  private readonly MAX_RETRIES = 3;
+  private readonly TIMEOUT = 10000; // 10 seconds
 
   constructor(
     @InjectRepository(CompanyNotificationSetting)
@@ -32,6 +34,20 @@ export class TelegramService {
     this.BASE_URL = `https://api.telegram.org/bot${this.BOT_TOKEN}`;
   }
 
+  private async retryRequest(
+    fn: () => Promise<any>,
+    retries: number = this.MAX_RETRIES,
+    delay: number = 1000,
+  ): Promise<any> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retries === 0) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return this.retryRequest(fn, retries - 1, delay * 2);
+    }
+  }
+
   async sendMessage(
     companyId: string,
     message: string,
@@ -48,22 +64,29 @@ export class TelegramService {
         return false;
       }
 
-      // Send message to Telegram group
-      this.logger.log(
-        `Sending message to Telegram group ${settings.telegram_group_id} -- ${JSON.stringify(
-          {
-            chat_id: settings.telegram_group_id,
-            text: message,
-            parse_mode: 'HTML',
-            ...media,
-          },
-        )}`,
-      );
-      const response = await axios.post(`${this.BASE_URL}/sendMessage`, {
+      // Prepare request payload
+      const payload = {
         chat_id: settings.telegram_group_id,
         text: message,
         parse_mode: 'HTML',
         ...media,
+      };
+
+      // Log request details
+      this.logger.log('Telegram API Request:', {
+        url: `${this.BASE_URL}/sendMessage`,
+        payload,
+        timeout: this.TIMEOUT,
+      });
+
+      // Send message with retry logic
+      const response = await this.retryRequest(async () => {
+        return axios.post(`${this.BASE_URL}/sendMessage`, payload, {
+          timeout: this.TIMEOUT,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
       });
 
       if (response.data.ok) {
@@ -78,9 +101,21 @@ export class TelegramService {
         return false;
       }
     } catch (error) {
-      this.logger.error(
-        `Error sending Telegram message: ${JSON.stringify(error)}`,
-      );
+      if (error instanceof AxiosError) {
+        this.logger.error('Telegram API Error:', {
+          message: error.message,
+          code: error.code,
+          status: error.response?.status,
+          data: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            timeout: error.config?.timeout,
+          },
+        });
+      } else {
+        this.logger.error(`Error sending Telegram message: ${error.message}`);
+      }
       return false;
     }
   }
