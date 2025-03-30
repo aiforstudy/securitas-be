@@ -57,6 +57,10 @@ export class Detection {
   @Column()
   zone: string;
 
+  @ApiPropertyOptional({
+    description: 'The monitor details',
+    example: 'Monitor details',
+  })
   @ManyToOne(() => Monitor, { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' })
   @JoinColumn({ name: 'monitor_id' })
   monitor: Monitor;
@@ -68,6 +72,10 @@ export class Detection {
   @Column()
   engine: string;
 
+  @ApiPropertyOptional({
+    description: 'The engine details',
+    example: 'Engine details',
+  })
   @ManyToOne(() => Engine, { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' })
   @JoinColumn({ name: 'engine' })
   engineDetail: Engine;
@@ -162,9 +170,17 @@ export class Detection {
   @UpdateDateColumn({ type: 'datetime' })
   updated_at: Date;
 
+  @ApiPropertyOptional({
+    description: 'The image URL of the detection',
+    example: 'https://example.com/image.jpg',
+  })
   @Column({ nullable: true })
   image_url: string;
 
+  @ApiPropertyOptional({
+    description: 'The video URL of the detection',
+    example: 'https://example.com/video.mp4',
+  })
   @Column({ nullable: true })
   video_url: string;
 }

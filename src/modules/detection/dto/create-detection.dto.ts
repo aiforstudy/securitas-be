@@ -45,13 +45,6 @@ export class CreateDetectionDto {
   engine: string;
 
   @ApiProperty({
-    description: 'The zone ID',
-    example: 'zone-1',
-  })
-  @IsString()
-  zone: string;
-
-  @ApiProperty({
     description: 'The status of the detection',
     enum: DetectionStatus,
     example: DetectionStatus.PENDING,
@@ -71,19 +64,11 @@ export class CreateDetectionDto {
 
   @ApiProperty({
     description: 'Whether the detection is an alert',
-    example: false,
+    example: 'Y',
   })
   @IsOptional()
-  @IsBoolean()
-  alert: boolean;
-
-  @ApiProperty({
-    description: 'Whether the detection is unread',
-    example: true,
-  })
-  @IsOptional()
-  @IsBoolean()
-  unread: boolean;
+  @IsString()
+  alert: string;
 
   @ApiProperty({
     description: 'The district where the detection occurred',

@@ -73,6 +73,7 @@ export class DetectionService {
         ...createDetectionDto,
         id: createDetectionDto.id || uuidv4(),
         approved: 'yes',
+        alert: createDetectionDto.alert == 'Y' ? true : false,
       });
       const savedDetection = await this.detectionRepository.save(detection);
 
