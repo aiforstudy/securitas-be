@@ -26,6 +26,7 @@ import { SearchDetectionDto } from './dto/search-detection.dto';
 import { eachDayOfInterval, eachHourOfInterval } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { QueryMonitorDto } from '../monitor/dto/query-monitor.dto';
+import { DetectionApprovalStatus } from './enums/detection-approval-status.enum';
 
 @Injectable()
 export class DetectionService {
@@ -72,7 +73,7 @@ export class DetectionService {
       const detection = this.detectionRepository.create({
         ...createDetectionDto,
         id: createDetectionDto.id || uuidv4(),
-        approved: 'yes',
+        approved: DetectionApprovalStatus.YES,
         alert: createDetectionDto.alert == 'Y' ? true : false,
       });
       const savedDetection = await this.detectionRepository.save(detection);
@@ -115,58 +116,76 @@ export class DetectionService {
       limit = 10,
     } = query;
 
-    const where: any = {};
+    const queryBuilder = this.detectionRepository
+      .createQueryBuilder('detection')
+      .leftJoinAndSelect('detection.monitor', 'monitor')
+      .leftJoinAndSelect('detection.engineDetail', 'engineDetail')
+      .orderBy('detection.timestamp', 'DESC');
 
     if (monitor_id) {
-      where.monitor_id = monitor_id;
+      queryBuilder.andWhere('detection.monitor_id = :monitorId', {
+        monitorId: monitor_id,
+      });
     }
 
     if (engine) {
-      where.engine = engine;
+      queryBuilder.andWhere('detection.engine = :engine', {
+        engine,
+      });
     }
 
     if (status) {
-      where.status = status;
+      queryBuilder.andWhere('detection.status = :status', {
+        status,
+      });
     }
 
     if (feedback_status) {
-      where.feedback_status = feedback_status;
+      queryBuilder.andWhere('detection.feedback_status = :feedbackStatus', {
+        feedbackStatus: feedback_status,
+      });
     }
 
     if (alert !== undefined) {
-      where.alert = alert;
+      queryBuilder.andWhere('detection.alert = :alert', {
+        alert,
+      });
     }
 
     if (unread !== undefined) {
-      where.unread = unread;
+      queryBuilder.andWhere('detection.unread = :unread', {
+        unread,
+      });
     }
 
     if (start_date && end_date) {
-      where.timestamp = Between(start_date, end_date);
+      queryBuilder.andWhere(
+        'detection.timestamp BETWEEN :startDate AND :endDate',
+        {
+          startDate: new Date(start_date),
+          endDate: new Date(end_date),
+        },
+      );
     }
 
     if (approved) {
-      where.approved = approved;
+      queryBuilder.andWhere('detection.approved = :approved', {
+        approved,
+      });
     }
 
     const skip = (page - 1) * limit;
-
-    const [data, total] = await this.detectionRepository.findAndCount({
-      where,
-      skip,
-      take: limit,
-      order: {
-        timestamp: 'DESC',
-      },
-      relations: ['monitor', 'engineDetail'],
-    });
+    const [data, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
     const total_pages = Math.ceil(total / limit);
 
     return {
       data,
-      page,
-      limit,
+      page: Number(page),
+      limit: Number(limit),
       total,
       total_pages,
     };

@@ -17,6 +17,7 @@ import { UpdateMonitorDto } from './dto/update-monitor.dto';
 import { QueryMonitorDto } from './dto/query-monitor.dto';
 import { Monitor } from './entities/monitor.entity';
 import { PaginatedMonitorDto } from './dto/paginated-monitor.dto';
+import { StartStreamDto } from './dto/start-stream.dto';
 
 @ApiTags('monitors')
 @Controller('monitors')
@@ -95,5 +96,15 @@ export class MonitorController {
   })
   remove(@Param('id') id: string): Promise<void> {
     return this.monitorService.remove(id);
+  }
+
+  @Post('start-stream')
+  @ApiOperation({ summary: 'Start streaming for multiple camera monitors' })
+  @ApiResponse({
+    status: 200,
+    description: 'Streams have been successfully started.',
+  })
+  startStream(@Body() startStreamDto: StartStreamDto) {
+    return this.monitorService.startStream(startStreamDto);
   }
 }

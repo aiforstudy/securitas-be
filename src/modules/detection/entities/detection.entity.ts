@@ -12,6 +12,7 @@ import { DetectionStatus } from '../enums/detection-status.enum';
 import { FeedbackStatus } from '../enums/feedback-status.enum';
 import { Engine } from '../../engine/entities/engine.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { DetectionApprovalStatus } from '../enums/detection-approval-status.enum';
 
 @Entity('detections')
 export class Detection {
@@ -40,8 +41,13 @@ export class Detection {
     description: 'The approved status',
     example: 'yes',
   })
-  @Column({ length: 45 })
-  approved: string;
+  @Column({
+    type: 'enum',
+    enum: DetectionApprovalStatus,
+    enumName: 'DetectionApprovalStatus',
+    // default: DetectionApprovalStatus.NO,
+  })
+  approved: DetectionApprovalStatus;
 
   @ApiPropertyOptional({
     description: 'The approved by',
