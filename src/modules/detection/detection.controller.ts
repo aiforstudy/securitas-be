@@ -65,7 +65,7 @@ export class DetectionController {
   @ApiResponse({
     status: 200,
     description: 'Return filtered detections sorted by timestamp.',
-    type: [Detection],
+    type: [PaginatedDetectionDto],
   })
   searchDetections(
     @Query() query: SearchDetectionDto,
