@@ -1,16 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('company_notification_settings')
 export class CompanyNotificationSetting {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
   @ApiProperty({
     description: 'The company ID',
     example: 'company-123',
   })
-  @Column({ name: 'company_code' })
+  @PrimaryColumn({ name: 'company_code' })
   company_code: string;
 
   @ApiProperty({

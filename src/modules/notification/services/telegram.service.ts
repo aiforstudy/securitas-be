@@ -224,8 +224,8 @@ export class TelegramService {
     message += `Company: ${company.name}\n`;
     message += `Monitor: ${monitor.name}\n`;
     message += `ID: ${detection.id}\n`;
-    message += `Time: ${timestamp}\n`;
-    message += `Status: ${detection.status}\n`;
+    message += `Time: ${timestamp} ${timezone}\n`;
+    // message += `Status: ${detection.status}\n`;
     message += `Engine: ${engine.name}\n`;
     if (engine.description) {
       message += `Description: ${engine.description}\n`;
