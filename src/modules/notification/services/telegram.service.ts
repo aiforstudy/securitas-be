@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { format } from 'date-fns-tz';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as momentTz from 'moment-timezone';
 
 const execAsync = promisify(exec);
 
@@ -216,9 +217,9 @@ export class TelegramService {
     },
     timezone: string,
   ): { message: string; media?: any } {
-    const timestamp = format(detection.timestamp, 'yyyy-MM-dd HH:mm:ss', {
-      timeZone: timezone,
-    });
+    const timestamp = momentTz(detection.timestamp)
+      .tz(timezone)
+      .format('YYYY-MM-DD HH:mm:ss');
 
     this.logger.log(
       `Timestamp: ${timestamp} -- origin: ${detection.timestamp}`,
@@ -228,7 +229,7 @@ export class TelegramService {
     message += `Company: ${company.name}\n`;
     message += `Monitor: ${monitor.name}\n`;
     message += `ID: ${detection.id}\n`;
-    message += `Time: ${timestamp} ${timezone}\n`;
+    message += `Time: ${timestamp} (${timezone})\n`;
     // message += `Status: ${detection.status}\n`;
     message += `Engine: ${engine.name}\n`;
     if (engine.description) {
