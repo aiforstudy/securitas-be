@@ -220,6 +220,10 @@ export class TelegramService {
       timeZone: timezone,
     });
 
+    this.logger.log(
+      `Timestamp: ${timestamp} -- origin: ${detection.timestamp}`,
+    );
+
     let message = `<b>New Detection Alert</b>\n\n`;
     message += `Company: ${company.name}\n`;
     message += `Monitor: ${monitor.name}\n`;
