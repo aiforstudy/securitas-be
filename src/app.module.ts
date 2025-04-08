@@ -10,6 +10,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { MonitorModule } from './modules/monitor/monitor.module';
 import { DetectionModule } from './modules/detection/detection.module';
 import { EngineModule } from './modules/engine/engine.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EngineModule } from './modules/engine/engine.module';
     EngineModule,
     MonitorModule,
     DetectionModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
