@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, Repository, In } from 'typeorm';
 import { Detection } from './entities/detection.entity';
 import { CreateDetectionDto } from './dto/create-detection.dto';
 import { UpdateDetectionDto } from './dto/update-detection.dto';
@@ -27,6 +27,7 @@ import { eachDayOfInterval, eachHourOfInterval } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { QueryMonitorDto } from '../monitor/dto/query-monitor.dto';
 import { DetectionApprovalStatus } from './enums/detection-approval-status.enum';
+import { BulkApproveDetectionDto } from './dto/bulk-approve-detection.dto';
 
 @Injectable()
 export class DetectionService {
@@ -69,30 +70,42 @@ export class DetectionService {
         }
       }
 
+      // Check if the engine requires approval
+      let requiresApproval = false;
+      if (monitor.engines_require_approval) {
+        try {
+          const enginesRequireApproval = JSON.parse(
+            monitor.engines_require_approval,
+          );
+          requiresApproval =
+            Array.isArray(enginesRequireApproval) &&
+            enginesRequireApproval.includes(createDetectionDto.engine);
+        } catch (error) {
+          this.logger.warn(
+            `Failed to parse engines_require_approval: ${error.message}`,
+          );
+        }
+      }
+
       // Create the detection
       const detection = this.detectionRepository.create({
         ...createDetectionDto,
         id: createDetectionDto.id || uuidv4(),
-        approved: DetectionApprovalStatus.YES,
+        approved: requiresApproval
+          ? DetectionApprovalStatus.NO
+          : DetectionApprovalStatus.YES,
         alert: createDetectionDto.alert == 'Y' ? true : false,
       });
       const savedDetection = await this.detectionRepository.save(detection);
 
-      // Send notification via Zalo
-      // await this.zaloService.sendDetectionAlert(monitor.company_code, {
-      //   id: savedDetection.id,
-      //   timestamp: savedDetection.timestamp,
-      //   status: savedDetection.status,
-      //   engine: savedDetection.engine,
-      //   monitor_id: savedDetection.monitor_id,
-      //   image_url: savedDetection.image_url,
-      //   video_url: savedDetection.video_url,
-      // });
-
-      this.telegramService.sendDetectionAlertPure(
-        monitor.company_code,
-        savedDetection,
-      );
+      // Only send notifications if approval is not required or already approved
+      if (savedDetection.approved === DetectionApprovalStatus.YES) {
+        // Send notification via Telegram
+        await this.telegramService.sendDetectionAlertPure(
+          monitor.company_code,
+          savedDetection,
+        );
+      }
 
       return savedDetection;
     } catch (error) {
@@ -422,5 +435,83 @@ export class DetectionService {
       total,
       total_pages,
     };
+  }
+
+  async approveDetection(id: string, approved_by?: string): Promise<Detection> {
+    const detection = await this.findOne(id);
+    if (!detection) {
+      throw new NotFoundException(`Detection with ID ${id} not found`);
+    }
+
+    // Get monitor details to get company_code for notifications
+    const monitor = await this.monitorService.findOne(detection.monitor_id);
+    if (!monitor) {
+      throw new NotFoundException(`Monitor not found: ${detection.monitor_id}`);
+    }
+
+    // Update detection status
+    detection.approved = DetectionApprovalStatus.YES;
+    detection.approved_by = approved_by || null;
+    const updatedDetection = await this.detectionRepository.save(detection);
+
+    // Send notifications since it's now approved
+    await this.telegramService.sendDetectionAlertPure(
+      monitor.company_code,
+      updatedDetection,
+    );
+
+    return updatedDetection;
+  }
+
+  async bulkApproveDetections(
+    bulkApproveDto: BulkApproveDetectionDto,
+  ): Promise<Detection[]> {
+    const { detection_ids, approved_by } = bulkApproveDto;
+    const approvedDetections: Detection[] = [];
+
+    // Get all detections first to validate they exist
+    const detections = await this.detectionRepository.find({
+      where: { id: In(detection_ids) },
+      relations: ['monitor'],
+    });
+
+    if (detections.length !== detection_ids.length) {
+      const foundIds = detections.map((d) => d.id);
+      const missingIds = detection_ids.filter((id) => !foundIds.includes(id));
+      throw new NotFoundException(
+        `Some detections were not found: ${missingIds.join(', ')}`,
+      );
+    }
+
+    // Check for already approved detections
+    const alreadyApprovedIds = detections
+      .filter((d) => d.approved === DetectionApprovalStatus.YES)
+      .map((d) => d.id);
+
+    if (alreadyApprovedIds.length > 0) {
+      throw new BadRequestException(
+        `Some detections are already approved: ${alreadyApprovedIds.join(', ')}`,
+      );
+    }
+
+    // Process each detection
+    for (const detection of detections) {
+      // Update detection status
+      detection.approved = DetectionApprovalStatus.YES;
+      detection.approved_by = approved_by || null;
+      const updatedDetection = await this.detectionRepository.save(detection);
+
+      // Send notification for each approved detection
+      if (detection.monitor) {
+        await this.telegramService.sendDetectionAlertPure(
+          detection.monitor.company_code,
+          updatedDetection,
+        );
+      }
+
+      approvedDetections.push(updatedDetection);
+    }
+
+    return approvedDetections;
   }
 }

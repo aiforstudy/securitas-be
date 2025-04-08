@@ -7,10 +7,9 @@ import { EngineService } from '../../engine/engine.service';
 import { MonitorService } from '../../monitor/monitor.service';
 import fetch from 'node-fetch';
 import { ConfigService } from '@nestjs/config';
-import { format } from 'date-fns-tz';
+import * as momentTz from 'moment-timezone';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import * as momentTz from 'moment-timezone';
 
 const execAsync = promisify(exec);
 
@@ -221,35 +220,26 @@ export class TelegramService {
       .tz(timezone)
       .format('YYYY-MM-DD HH:mm:ss');
 
-    this.logger.log(
-      `Timestamp: ${timestamp} -- origin: ${detection.timestamp}`,
-    );
-
     let message = `<b>New Detection Alert</b>\n\n`;
     message += `Company: ${company.name}\n`;
     message += `Monitor: ${monitor.name}\n`;
     message += `ID: ${detection.id}\n`;
     message += `Time: ${timestamp} (${timezone})\n`;
-    // message += `Status: ${detection.status}\n`;
     message += `Engine: ${engine.name}\n`;
     if (engine.description) {
       message += `Description: ${engine.description}\n`;
     }
-    message += '\n';
 
     let media = undefined;
-
     if (detection.image_url) {
-      message += `<a href="${detection.image_url}">View Image</a>\n`;
+      // Don't include the image URL in the message since it will be sent as photo
       media = {
         photo: detection.image_url,
-        caption: message,
       };
     } else if (detection.video_url) {
-      message += `<a href="${detection.video_url}">View Video</a>\n`;
+      // Don't include the video URL in the message since it will be sent as video
       media = {
         video: detection.video_url,
-        caption: message,
       };
     }
 
@@ -262,23 +252,36 @@ export class TelegramService {
     media?: { photo?: string; video?: string },
   ): Promise<boolean> {
     try {
-      let curlCommand = `curl -X POST "${this.BASE_URL}/sendMessage" `;
-      curlCommand += `-H "Content-Type: application/json" `;
-      curlCommand += `-d '{"chat_id":"${chatId}","text":"${message.replace(/"/g, '\\"')}","parse_mode":"HTML"}'`;
+      let endpoint = 'sendMessage';
+      let payload: any = {
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML',
+      };
 
       if (media?.photo) {
-        curlCommand = `curl -X POST "${this.BASE_URL}/sendPhoto" `;
-        curlCommand += `-H "Content-Type: application/json" `;
-        curlCommand += `-d '{"chat_id":"${chatId}","photo":"${media.photo}","caption":"${message.replace(/"/g, '\\"')}","parse_mode":"HTML"}'`;
+        endpoint = 'sendPhoto';
+        payload = {
+          chat_id: chatId,
+          photo: media.photo,
+          caption: message,
+          parse_mode: 'HTML',
+        };
       } else if (media?.video) {
-        curlCommand = `curl -X POST "${this.BASE_URL}/sendVideo" `;
-        curlCommand += `-H "Content-Type: application/json" `;
-        curlCommand += `-d '{"chat_id":"${chatId}","video":"${media.video}","caption":"${message.replace(/"/g, '\\"')}","parse_mode":"HTML"}'`;
+        endpoint = 'sendVideo';
+        payload = {
+          chat_id: chatId,
+          video: media.video,
+          caption: message,
+          parse_mode: 'HTML',
+        };
       }
+
+      const curlCommand = `curl -X POST "${this.BASE_URL}/${endpoint}" -H "Content-Type: application/json" -d '${JSON.stringify(payload).replace(/'/g, "'\\''")}'`;
 
       this.logger.log('Executing curl command:', curlCommand);
 
-      const { stdout, stderr } = await execAsync(curlCommand);
+      const { stdout } = await execAsync(curlCommand);
       const response = JSON.parse(stdout);
 
       if (response.ok) {

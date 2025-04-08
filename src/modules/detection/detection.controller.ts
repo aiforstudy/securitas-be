@@ -22,6 +22,7 @@ import {
   DetectionStatisticsResponseDto,
 } from './dto/statistics-detection.dto';
 import { SearchDetectionDto } from './dto/search-detection.dto';
+import { BulkApproveDetectionDto } from './dto/bulk-approve-detection.dto';
 
 @ApiTags('detections')
 @Controller('detections')
@@ -147,5 +148,42 @@ export class DetectionController {
   })
   remove(@Param('id') id: string): Promise<void> {
     return this.detectionService.remove(id);
+  }
+
+  @Patch(':id/approve')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Approve a detection' })
+  @ApiResponse({
+    status: 200,
+    description: 'The detection has been successfully approved.',
+    type: Detection,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Detection not found.',
+  })
+  approveDetection(
+    @Param('id') id: string,
+    @Body('approved_by') approved_by?: string,
+  ): Promise<Detection> {
+    return this.detectionService.approveDetection(id, approved_by);
+  }
+
+  @Post('approve/bulk')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Approve multiple detections at once' })
+  @ApiResponse({
+    status: 200,
+    description: 'The detections have been successfully approved.',
+    type: [Detection],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'One or more detections not found.',
+  })
+  bulkApproveDetections(
+    @Body() bulkApproveDto: BulkApproveDetectionDto,
+  ): Promise<Detection[]> {
+    return this.detectionService.bulkApproveDetections(bulkApproveDto);
   }
 }
