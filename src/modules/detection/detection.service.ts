@@ -489,6 +489,17 @@ export class DetectionService {
       );
     }
 
+    // Check if any detection is already approved
+    const alreadyApprovedDetections = detections.filter(
+      (d) => d.approved === DetectionApprovalStatus.YES,
+    );
+
+    if (alreadyApprovedDetections.length > 0) {
+      throw new BadRequestException(
+        `Cannot update detections that are already approved. Found ${alreadyApprovedDetections.length} detections with approved=yes.`,
+      );
+    }
+
     // Process each detection
     for (const detection of detections) {
       // Update detection status
