@@ -23,6 +23,7 @@ import {
 } from './dto/statistics-detection.dto';
 import { SearchDetectionDto } from './dto/search-detection.dto';
 import { BulkApproveDetectionDto } from './dto/bulk-approve-detection.dto';
+import { DetectionApprovalStatus } from './enums/detection-approval-status.enum';
 
 @ApiTags('detections')
 @Controller('detections')
@@ -164,9 +165,10 @@ export class DetectionController {
   })
   approveDetection(
     @Param('id') id: string,
+    @Body('approved') approved: DetectionApprovalStatus,
     @Body('approved_by') approved_by?: string,
   ): Promise<Detection> {
-    return this.detectionService.approveDetection(id, approved_by);
+    return this.detectionService.approveDetection(id, approved, approved_by);
   }
 
   @Post('approve/bulk')
