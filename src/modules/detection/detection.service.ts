@@ -437,7 +437,11 @@ export class DetectionService {
     };
   }
 
-  async approveDetection(id: string, approved_by?: string): Promise<Detection> {
+  async approveDetection(
+    id: string,
+    approved: DetectionApprovalStatus,
+    approved_by?: string,
+  ): Promise<Detection> {
     const detection = await this.findOne(id);
     if (!detection) {
       throw new NotFoundException(`Detection with ID ${id} not found`);
@@ -450,15 +454,17 @@ export class DetectionService {
     }
 
     // Update detection status
-    detection.approved = DetectionApprovalStatus.YES;
+    detection.approved = approved;
     detection.approved_by = approved_by || null;
     const updatedDetection = await this.detectionRepository.save(detection);
 
-    // Send notifications since it's now approved
-    await this.telegramService.sendDetectionAlertPure(
-      monitor.company_code,
-      updatedDetection,
-    );
+    // Only send notifications if approved is "yes"
+    if (approved === DetectionApprovalStatus.YES) {
+      await this.telegramService.sendDetectionAlertPure(
+        monitor.company_code,
+        updatedDetection,
+      );
+    }
 
     return updatedDetection;
   }
@@ -466,8 +472,8 @@ export class DetectionService {
   async bulkApproveDetections(
     bulkApproveDto: BulkApproveDetectionDto,
   ): Promise<Detection[]> {
-    const { detection_ids, approved_by } = bulkApproveDto;
-    const approvedDetections: Detection[] = [];
+    const { detection_ids, approved, approved_by } = bulkApproveDto;
+    const updatedDetections: Detection[] = [];
 
     // Get all detections first to validate they exist
     const detections = await this.detectionRepository.find({
@@ -483,35 +489,24 @@ export class DetectionService {
       );
     }
 
-    // Check for already approved detections
-    const alreadyApprovedIds = detections
-      .filter((d) => d.approved === DetectionApprovalStatus.YES)
-      .map((d) => d.id);
-
-    if (alreadyApprovedIds.length > 0) {
-      throw new BadRequestException(
-        `Some detections are already approved: ${alreadyApprovedIds.join(', ')}`,
-      );
-    }
-
     // Process each detection
     for (const detection of detections) {
       // Update detection status
-      detection.approved = DetectionApprovalStatus.YES;
+      detection.approved = approved;
       detection.approved_by = approved_by || null;
       const updatedDetection = await this.detectionRepository.save(detection);
 
-      // Send notification for each approved detection
-      if (detection.monitor) {
+      // Only send notification if approved is "yes"
+      if (approved === DetectionApprovalStatus.YES && detection.monitor) {
         await this.telegramService.sendDetectionAlertPure(
           detection.monitor.company_code,
           updatedDetection,
         );
       }
 
-      approvedDetections.push(updatedDetection);
+      updatedDetections.push(updatedDetection);
     }
 
-    return approvedDetections;
+    return updatedDetections;
   }
 }
