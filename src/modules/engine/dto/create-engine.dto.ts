@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsBoolean, IsOptional, IsInt, IsUrl } from 'class-validator';
 
 export class CreateEngineDto {
@@ -61,28 +61,25 @@ export class CreateEngineDto {
   // @IsOptional()
   // show_on_home?: boolean;
 
-  @ApiProperty({
-    description: 'Engine title',
-    example: 'Face Detection',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  title?: string;
+  // @ApiPropertyOptional({
+  //   description: 'Engine title',
+  //   example: 'Face Detection',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // title?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Related engine ID',
     example: 'engine-002',
-    required: false,
   })
   @IsString()
   @IsOptional()
   related_engine?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Engine icon URL',
     example: 'https://example.com/icon.png',
-    required: false,
   })
   @IsString()
   @IsOptional()
@@ -115,10 +112,9 @@ export class CreateEngineDto {
   // @IsOptional()
   // weight?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Engine color in hex format',
     example: '#FF0000',
-    required: false,
   })
   @IsString()
   @IsOptional()

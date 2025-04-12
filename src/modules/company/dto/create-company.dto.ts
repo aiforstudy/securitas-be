@@ -12,10 +12,9 @@ import { Type } from 'class-transformer';
 import { v4 as uuidv4 } from 'uuid';
 
 export class CreateCompanyDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Company ID (UUID)',
     example: '123e4567-e89b-12d3-a456-426614174000',
-    required: false,
   })
   @IsOptional()
   @IsUUID()
@@ -36,7 +35,7 @@ export class CreateCompanyDto {
   @IsString()
   company_code: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The selected project for the company',
     example: 'Project A',
   })
@@ -44,7 +43,7 @@ export class CreateCompanyDto {
   @IsString()
   selected_project?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The expiration date of the company',
     example: '2024-12-31T23:59:59.999Z',
   })
@@ -53,7 +52,7 @@ export class CreateCompanyDto {
   @IsDate()
   expires_on?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The title of the company',
     example: 'Leading Technology Solutions',
   })
@@ -61,7 +60,7 @@ export class CreateCompanyDto {
   @IsString()
   title?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The API key for the company',
     example: 'sk-1234567890abcdef',
   })
@@ -70,7 +69,7 @@ export class CreateCompanyDto {
   @IsString()
   apikey: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The URL of the company logo',
     example: 'https://example.com/logo.png',
   })
@@ -79,7 +78,7 @@ export class CreateCompanyDto {
   @IsString()
   logo_url: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The daily report configuration',
     example: '{"enabled": true, "time": "09:00"}',
   })
@@ -87,7 +86,7 @@ export class CreateCompanyDto {
   @IsString()
   daily_report?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The instant alert configuration',
     example: '{"enabled": true, "channels": ["email", "sms"]}',
   })
@@ -95,7 +94,7 @@ export class CreateCompanyDto {
   @IsString()
   instant_alert?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The enabled cards configuration',
     example: '["card1", "card2", "card3"]',
   })
@@ -103,7 +102,7 @@ export class CreateCompanyDto {
   @IsString()
   enabled_cards?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The locale settings for the company',
     example: '{"language": "en", "timezone": "UTC"}',
   })
