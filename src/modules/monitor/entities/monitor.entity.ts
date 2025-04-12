@@ -35,39 +35,11 @@ export class Monitor {
   name: string;
 
   @ApiProperty({
-    description: 'The RTMP URI for the monitor stream',
-    example: 'rtmp://example.com/live/stream1',
-  })
-  @Column({ nullable: true })
-  rtmp_uri: string;
-
-  @ApiProperty({
-    description: 'Whether to play from source',
-    example: false,
-  })
-  @Column({ default: false })
-  play_from_source: boolean;
-
-  @ApiProperty({
     description: 'The engines configuration as JSON string',
     example: '["engine1", "engine2"]',
   })
   @Column('text')
   engines: string;
-
-  @ApiProperty({
-    description: 'Whether recording is enabled',
-    example: false,
-  })
-  @Column({ default: false })
-  recording: boolean;
-
-  @ApiProperty({
-    description: 'The graph configuration as JSON string',
-    example: '{"nodes": [], "edges": []}',
-  })
-  @Column('text')
-  graph: string;
 
   @ApiProperty({
     description: 'The zone configuration as JSON string',
@@ -78,9 +50,9 @@ export class Monitor {
 
   @ApiProperty({
     description: 'The type of monitor',
-    example: 'ys',
+    example: 'camera',
   })
-  @Column({ default: '"ys"', length: 45 })
+  @Column({ default: 'camera', length: 45 })
   type: string;
 
   @ApiProperty({
@@ -89,13 +61,6 @@ export class Monitor {
   })
   @Column({ nullable: true, length: 45 })
   device_id: string;
-
-  @ApiProperty({
-    description: 'The machine ID',
-    example: 'machine-123',
-  })
-  @Column({ nullable: true, length: 45 })
-  machine_id: string;
 
   @ApiProperty({
     description: 'The IP address',
@@ -108,36 +73,8 @@ export class Monitor {
     description: 'The configuration version',
     example: '1',
   })
-  @Column({ default: '1', length: 45 })
-  config: string;
-
-  @ApiProperty({
-    description: 'The time in',
-    example: '2024-03-14T00:00:00Z',
-  })
-  @Column({ nullable: true })
-  time_in: Date;
-
-  @ApiProperty({
-    description: 'The time out',
-    example: '2024-03-14T23:59:59Z',
-  })
-  @Column({ nullable: true })
-  time_out: Date;
-
-  @ApiProperty({
-    description: 'The socket ID',
-    example: 'socket-123',
-  })
   @Column({ nullable: true, length: 45 })
-  socket_id: string;
-
-  @ApiProperty({
-    description: 'The YS token',
-    example: 'token-123',
-  })
-  @Column({ nullable: true })
-  ys_token: string;
+  config: string;
 
   @ApiProperty({
     description: 'The user ID',
@@ -147,27 +84,6 @@ export class Monitor {
   user_id: string;
 
   @ApiProperty({
-    description: 'The TNT value',
-    example: 0,
-  })
-  @Column({ type: 'float', default: 0 })
-  tnt: number;
-
-  @ApiProperty({
-    description: 'The FPT value',
-    example: 0,
-  })
-  @Column({ type: 'float', default: 0 })
-  fpt: number;
-
-  @ApiProperty({
-    description: 'The CONV value',
-    example: 0,
-  })
-  @Column({ type: 'float', default: 0 })
-  conv: number;
-
-  @ApiProperty({
     description: 'The connection URI',
     example: 'rtsp://example.com/stream1',
   })
@@ -175,11 +91,11 @@ export class Monitor {
   connection_uri: string;
 
   @ApiProperty({
-    description: 'The sub-connection URI',
-    example: 'rtsp://example.com/stream2',
+    description: 'The hls URI',
+    example: 'http://example.com/stream.m3u8',
   })
   @Column({ nullable: true })
-  sub_connection_uri: string;
+  hls_uri: string;
 
   @ApiProperty({
     description: 'The snapshot data',
@@ -189,20 +105,6 @@ export class Monitor {
   snapshot: string;
 
   @ApiProperty({
-    description: 'The GPS coordinates',
-    example: '10.123456,106.789012',
-  })
-  @Column({ nullable: true, length: 100 })
-  gps_coordinates: string;
-
-  @ApiProperty({
-    description: 'The pending engines configuration',
-    example: '["engine3", "engine4"]',
-  })
-  @Column('text', { nullable: true })
-  pending_engines: string;
-
-  @ApiProperty({
     description: 'The location',
     example: 'Main Entrance',
   })
@@ -210,74 +112,11 @@ export class Monitor {
   location: string;
 
   @ApiProperty({
-    description: 'The snapshot creation timestamp',
-    example: '2024-03-14T00:00:00Z',
-  })
-  @Column({ nullable: true })
-  snapshot_created_at: Date;
-
-  @ApiProperty({
-    description: 'The handling office',
-    example: 'Office A',
-  })
-  @Column({ nullable: true, length: 100 })
-  handling_office: string;
-
-  @ApiProperty({
-    description: 'The battery sync status',
-    example: true,
-  })
-  @Column({ nullable: true })
-  battery_sync: boolean;
-
-  @ApiProperty({
-    description: 'The battery threshold',
-    example: 80,
-  })
-  @Column({ default: 80 })
-  battery_threshold: number;
-
-  @ApiProperty({
-    description: 'Whether approval is required',
-    example: true,
-  })
-  @Column({ nullable: true })
-  require_approval: boolean;
-
-  @ApiProperty({
-    description: 'The rule configuration',
-    example: '{"conditions": []}',
-  })
-  @Column('text', { nullable: true })
-  rule: string;
-
-  @ApiProperty({
     description: 'The last ping timestamp',
     example: '2024-03-14T00:00:00Z',
   })
   @Column({ nullable: true })
   last_ping_at: Date;
-
-  @ApiProperty({
-    description: 'The district',
-    example: 'District 1',
-  })
-  @Column({ nullable: true, length: 45 })
-  district: string;
-
-  @ApiProperty({
-    description: 'Whether approval is not required',
-    example: false,
-  })
-  @Column({ nullable: true })
-  dont_require_approval: boolean;
-
-  @ApiProperty({
-    description: 'The sequence number format',
-    example: 'YYYYMMDD',
-  })
-  @Column({ nullable: true, length: 45 })
-  seq_no_format: string;
 
   @ApiProperty({
     description: 'The engines requiring approval',
@@ -321,48 +160,6 @@ export class Monitor {
   description: string;
 
   @ApiProperty({
-    description: 'The camera identification',
-    example: 'CAM001',
-  })
-  @Column({ nullable: true, length: 100 })
-  camera_identification: string;
-
-  @ApiProperty({
-    description: 'The platform device ID',
-    example: 'PLAT-123',
-  })
-  @Column({ nullable: true, length: 100 })
-  platform_device_id: string;
-
-  @ApiProperty({
-    description: 'The expiry date',
-    example: '2024-12-31T23:59:59Z',
-  })
-  @Column({ nullable: true })
-  expiry_date: Date;
-
-  @ApiProperty({
-    description: 'Whether the monitor is disabled',
-    example: false,
-  })
-  @Column({ default: false })
-  disabled: boolean;
-
-  @ApiProperty({
-    description: 'The latest disabled timestamp',
-    example: '2024-03-14T00:00:00Z',
-  })
-  @Column({ nullable: true })
-  latest_disabled_at: Date;
-
-  @ApiProperty({
-    description: 'The Zabbix host ID',
-    example: 'zabbix-123',
-  })
-  @Column({ nullable: true })
-  zabbix_host_id: string;
-
-  @ApiProperty({
     description: 'The timestamp when the monitor was created',
     example: '2024-03-14T00:00:00Z',
   })
@@ -379,7 +176,4 @@ export class Monitor {
   @ManyToOne(() => Company, { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' })
   @JoinColumn({ name: 'company_code', referencedColumnName: 'company_code' })
   company: Company;
-
-  @Column({ type: 'json', nullable: true })
-  configuration: Record<string, any>;
 }
