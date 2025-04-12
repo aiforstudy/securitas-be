@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 @Entity('companies')
 export class Company {
@@ -30,68 +30,75 @@ export class Company {
   @Column({ unique: true })
   company_code: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The selected project for the company',
     example: 'Project A',
   })
   @Column({ nullable: true })
   selected_project: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The expiration date of the company',
     example: '2024-12-31T23:59:59.999Z',
   })
   @Column({ nullable: true })
   expires_on: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The title of the company',
     example: 'Leading Technology Solutions',
   })
   @Column({ nullable: true, length: 145 })
   title: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The API key for the company',
     example: 'sk-1234567890abcdef',
   })
   @Column({ length: 145 })
   apikey: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The URL of the company logo',
     example: 'https://example.com/logo.png',
   })
   @Column({ length: 1000 })
   logo_url: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The daily report configuration',
     example: '{"enabled": true, "time": "09:00"}',
   })
   @Column({ type: 'text', nullable: true })
   daily_report: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The instant alert configuration',
     example: '{"enabled": true, "channels": ["email", "sms"]}',
   })
   @Column({ type: 'text', nullable: true })
   instant_alert: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The enabled cards configuration',
     example: '["card1", "card2", "card3"]',
   })
   @Column({ type: 'text', nullable: true })
   enabled_cards: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The locale settings for the company',
     example: '{"language": "en", "timezone": "UTC"}',
   })
   @Column({ type: 'json', nullable: true })
   locale: Record<string, any>;
+
+  @ApiPropertyOptional({
+    description: 'The location',
+    example: '[12.345678,98.765432]',
+  })
+  @Column({ type: 'json', nullable: true })
+  location: string;
 
   @ApiProperty({
     description: 'The timestamp when the company was created',

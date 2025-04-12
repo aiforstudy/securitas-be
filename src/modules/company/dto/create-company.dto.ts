@@ -7,7 +7,7 @@ import {
   IsArray,
   IsUUID,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -110,4 +110,12 @@ export class CreateCompanyDto {
   @IsOptional()
   @IsObject()
   locale?: Record<string, any>;
+
+  @ApiPropertyOptional({
+    description: 'The location coordinates',
+    example: '[12.345678,98.765432]',
+  })
+  @IsOptional()
+  @IsString()
+  location?: string;
 }

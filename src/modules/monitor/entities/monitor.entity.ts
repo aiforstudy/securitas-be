@@ -108,7 +108,7 @@ export class Monitor {
     description: 'The location',
     example: 'Main Entrance',
   })
-  @Column()
+  @Column({ type: 'json', nullable: true })
   location: string;
 
   @ApiProperty({
