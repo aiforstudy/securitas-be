@@ -41,12 +41,13 @@ export class CreateMonitorDto {
   @IsOptional()
   play_from_source?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The engines configuration as JSON string',
     example: '["engine1", "engine2"]',
   })
   @IsString()
-  engines: string;
+  @IsOptional()
+  engines?: string;
 
   @ApiPropertyOptional({
     description: 'Whether recording is enabled',
@@ -144,7 +145,7 @@ export class CreateMonitorDto {
   @IsOptional()
   ys_token?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The user ID',
     example: 'user-123',
   })
