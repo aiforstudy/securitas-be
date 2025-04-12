@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsString, IsEnum } from 'class-validator';
 import { DetectionApprovalStatus } from '../enums/detection-approval-status.enum';
 
@@ -19,10 +19,9 @@ export class BulkApproveDetectionDto {
   @IsEnum(DetectionApprovalStatus)
   approved: DetectionApprovalStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The user who approved the detection',
     example: 'user-123',
-    required: false,
   })
   @IsString()
   @IsOptional()

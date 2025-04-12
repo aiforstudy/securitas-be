@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsBoolean,
@@ -12,10 +12,9 @@ import { Type } from 'class-transformer';
 import { DetectionStatus, FeedbackStatus } from '../enums/detection.enum';
 
 export class QueryDetectionDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The page number',
     example: 1,
-    required: false,
   })
   @IsNumber()
   @Min(1)
@@ -23,10 +22,9 @@ export class QueryDetectionDto {
   @IsOptional()
   page?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The number of items per page',
     example: 10,
-    required: false,
   })
   @IsNumber()
   @Min(1)
@@ -34,87 +32,78 @@ export class QueryDetectionDto {
   @IsOptional()
   limit?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The monitor ID to filter by',
     example: 'monitor-123',
-    required: false,
   })
   @IsString()
   @IsOptional()
   monitor_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The engine to filter by',
     example: 'engine1',
-    required: false,
   })
   @IsString()
   @IsOptional()
   engine?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The status to filter by',
     example: DetectionStatus.PENDING,
     enum: DetectionStatus,
-    required: false,
   })
   @IsEnum(DetectionStatus)
   @IsOptional()
   status?: DetectionStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The feedback status to filter by',
     example: FeedbackStatus.UNMARK,
     enum: FeedbackStatus,
-    required: false,
   })
   @IsEnum(FeedbackStatus)
   @IsOptional()
   feedback_status?: FeedbackStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Filter by alert status',
     example: true,
-    required: false,
   })
   @IsBoolean()
   @IsOptional()
   alert?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Filter by unread status',
     example: true,
-    required: false,
   })
   @IsBoolean()
   @IsOptional()
   unread?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The start date to filter by',
     example: '2024-03-14T00:00:00Z',
-    required: false,
   })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   start_date?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The end date to filter by',
     example: '2024-03-14T23:59:59Z',
-    required: false,
   })
   @IsDate()
   @Type(() => Date)
   @IsOptional()
   end_date?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Filter by approved status',
     enum: ['yes', 'no', 'expired'],
     example: 'yes',
-    required: false,
   })
   @IsString()
   @IsOptional()

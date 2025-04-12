@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsBoolean,
@@ -12,19 +12,17 @@ import { Type } from 'class-transformer';
 import { DetectionStatus, FeedbackStatus } from '../enums/detection.enum';
 
 export class CreateDetectionDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The unique identifier of the detection',
     example: 'detection-123',
-    required: false,
   })
   @IsString()
   @IsOptional()
   id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The timestamp of the detection',
     example: '2024-03-14T00:00:00Z',
-    required: false,
   })
   @IsDate()
   @Type(() => Date)
@@ -44,7 +42,7 @@ export class CreateDetectionDto {
   @IsString()
   engine: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The status of the detection',
     enum: DetectionStatus,
     example: DetectionStatus.PENDING,
@@ -53,7 +51,7 @@ export class CreateDetectionDto {
   @IsEnum(DetectionStatus)
   status: DetectionStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The feedback status of the detection',
     enum: FeedbackStatus,
     example: FeedbackStatus.UNMARK,
@@ -62,7 +60,7 @@ export class CreateDetectionDto {
   @IsEnum(FeedbackStatus)
   feedback_status: FeedbackStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether the detection is an alert',
     example: 'Y',
   })
@@ -70,7 +68,7 @@ export class CreateDetectionDto {
   @IsString()
   alert: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The district where the detection occurred',
     example: 'District 1',
   })
@@ -78,7 +76,7 @@ export class CreateDetectionDto {
   @IsString()
   district: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The suspected offense',
     example: 'Test Offense',
   })
@@ -86,7 +84,7 @@ export class CreateDetectionDto {
   @IsString()
   suspected_offense: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The type of vehicle',
     example: 'car',
   })
@@ -94,7 +92,7 @@ export class CreateDetectionDto {
   @IsString()
   vehicle_type: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The license plate number',
     example: 'ABC123',
   })
@@ -102,7 +100,7 @@ export class CreateDetectionDto {
   @IsString()
   license_plate: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Additional metadata about the detection',
     example: {},
   })
@@ -110,19 +108,17 @@ export class CreateDetectionDto {
   @IsOptional()
   metadata?: Record<string, any>;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'URL to the detection image',
     example: 'https://example.com/image.jpg',
-    required: false,
   })
   @IsOptional()
   @IsString()
   image_url?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'URL to the detection video',
     example: 'https://example.com/video.mp4',
-    required: false,
   })
   @IsOptional()
   @IsString()

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -26,7 +26,7 @@ export class StatisticsDetectionDto {
   @IsDate()
   to: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Timezone for date formatting',
     example: 'Asia/Ho_Chi_Minh',
     default: 'UTC',
@@ -35,7 +35,7 @@ export class StatisticsDetectionDto {
   @IsOptional()
   timezone?: string = 'UTC';
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Group by time unit',
     enum: ['day', 'hour'],
     default: 'day',

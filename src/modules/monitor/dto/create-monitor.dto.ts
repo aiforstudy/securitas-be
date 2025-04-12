@@ -17,7 +17,7 @@ export class CreateMonitorDto {
   @IsString()
   company_code: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The name of the monitor',
     example: 'Main Entrance Camera',
   })
@@ -25,7 +25,7 @@ export class CreateMonitorDto {
   @IsOptional()
   name?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The RTMP URI for the monitor stream',
     example: 'rtmp://example.com/live/stream1',
   })
@@ -33,7 +33,7 @@ export class CreateMonitorDto {
   @IsOptional()
   rtmp_uri?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether to play from source',
     example: false,
   })
@@ -48,7 +48,7 @@ export class CreateMonitorDto {
   @IsString()
   engines: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether recording is enabled',
     example: false,
   })
@@ -56,7 +56,7 @@ export class CreateMonitorDto {
   @IsOptional()
   recording?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The graph configuration as JSON string',
     example: '{"nodes": [], "edges": []}',
   })
@@ -64,7 +64,7 @@ export class CreateMonitorDto {
   @IsOptional()
   graph: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The zone configuration as JSON string',
     example: '{"points": []}',
   })
@@ -72,7 +72,7 @@ export class CreateMonitorDto {
   @IsOptional()
   zone?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The type of monitor',
     example: 'ys',
   })
@@ -80,7 +80,7 @@ export class CreateMonitorDto {
   @IsOptional()
   type?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The device ID',
     example: 'device-123',
   })
@@ -88,7 +88,7 @@ export class CreateMonitorDto {
   @IsOptional()
   device_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The machine ID',
     example: 'machine-123',
   })
@@ -96,7 +96,7 @@ export class CreateMonitorDto {
   @IsOptional()
   machine_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The IP address',
     example: '192.168.1.1',
   })
@@ -104,7 +104,7 @@ export class CreateMonitorDto {
   @IsOptional()
   ip?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The configuration version',
     example: '1',
   })
@@ -112,7 +112,7 @@ export class CreateMonitorDto {
   @IsOptional()
   config?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The time in',
     example: '2024-03-14T00:00:00Z',
   })
@@ -120,7 +120,7 @@ export class CreateMonitorDto {
   @IsOptional()
   time_in?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The time out',
     example: '2024-03-14T23:59:59Z',
   })
@@ -128,7 +128,7 @@ export class CreateMonitorDto {
   @IsOptional()
   time_out?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The socket ID',
     example: 'socket-123',
   })
@@ -136,7 +136,7 @@ export class CreateMonitorDto {
   @IsOptional()
   socket_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The YS token',
     example: 'token-123',
   })
@@ -152,7 +152,7 @@ export class CreateMonitorDto {
   @IsOptional()
   user_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The TNT value',
     example: 0,
   })
@@ -160,7 +160,7 @@ export class CreateMonitorDto {
   @IsOptional()
   tnt?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The FPT value',
     example: 0,
   })
@@ -168,7 +168,7 @@ export class CreateMonitorDto {
   @IsOptional()
   fpt?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The CONV value',
     example: 0,
   })
@@ -176,7 +176,7 @@ export class CreateMonitorDto {
   @IsOptional()
   conv?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The connection URI',
     example: 'rtsp://example.com/stream1',
   })
@@ -184,7 +184,7 @@ export class CreateMonitorDto {
   @IsOptional()
   connection_uri?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The sub-connection URI',
     example: 'rtsp://example.com/stream2',
   })
@@ -192,7 +192,7 @@ export class CreateMonitorDto {
   @IsOptional()
   sub_connection_uri?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The snapshot data',
     example: 'base64-encoded-image',
   })
@@ -200,7 +200,7 @@ export class CreateMonitorDto {
   @IsOptional()
   snapshot?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The GPS coordinates',
     example: '10.123456,106.789012',
   })
@@ -208,7 +208,7 @@ export class CreateMonitorDto {
   @IsOptional()
   gps_coordinates?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The pending engines configuration',
     example: '["engine3", "engine4"]',
   })
@@ -216,7 +216,7 @@ export class CreateMonitorDto {
   @IsOptional()
   pending_engines?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The location',
     example: 'Main Entrance',
   })
@@ -224,7 +224,7 @@ export class CreateMonitorDto {
   @IsOptional()
   location?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The snapshot creation timestamp',
     example: '2024-03-14T00:00:00Z',
   })
@@ -232,7 +232,7 @@ export class CreateMonitorDto {
   @IsOptional()
   snapshot_created_at?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The handling office',
     example: 'Office A',
   })
@@ -240,7 +240,7 @@ export class CreateMonitorDto {
   @IsOptional()
   handling_office?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The battery sync status',
     example: true,
   })
@@ -248,7 +248,7 @@ export class CreateMonitorDto {
   @IsOptional()
   battery_sync?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The battery threshold',
     example: 80,
   })
@@ -256,7 +256,7 @@ export class CreateMonitorDto {
   @IsOptional()
   battery_threshold?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether approval is required',
     example: true,
   })
@@ -264,7 +264,7 @@ export class CreateMonitorDto {
   @IsOptional()
   require_approval?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The rule configuration',
     example: '{"conditions": []}',
   })
@@ -272,7 +272,7 @@ export class CreateMonitorDto {
   @IsOptional()
   rule?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The last ping timestamp',
     example: '2024-03-14T00:00:00Z',
   })
@@ -280,7 +280,7 @@ export class CreateMonitorDto {
   @IsOptional()
   last_ping_at?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The district',
     example: 'District 1',
   })
@@ -288,7 +288,7 @@ export class CreateMonitorDto {
   @IsOptional()
   district?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether approval is not required',
     example: false,
   })
@@ -296,7 +296,7 @@ export class CreateMonitorDto {
   @IsOptional()
   dont_require_approval?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The sequence number format',
     example: 'YYYYMMDD',
   })
@@ -304,7 +304,7 @@ export class CreateMonitorDto {
   @IsOptional()
   seq_no_format?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The engines requiring approval',
     example: '["engine1", "engine2"]',
   })
@@ -312,7 +312,7 @@ export class CreateMonitorDto {
   @IsOptional()
   engines_require_approval?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The color',
     example: '#FF0000',
   })
@@ -320,7 +320,7 @@ export class CreateMonitorDto {
   @IsOptional()
   color?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The status of the monitor',
     enum: MonitorStatus,
     example: MonitorStatus.CONNECTED,
@@ -329,7 +329,7 @@ export class CreateMonitorDto {
   @IsOptional()
   status?: MonitorStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The serial number',
     example: 'SN123456',
   })
@@ -337,7 +337,7 @@ export class CreateMonitorDto {
   @IsOptional()
   sn?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The description',
     example: 'Main entrance security camera',
   })
@@ -345,7 +345,7 @@ export class CreateMonitorDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The camera identification',
     example: 'CAM001',
   })
@@ -353,7 +353,7 @@ export class CreateMonitorDto {
   @IsOptional()
   camera_identification?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The platform device ID',
     example: 'PLAT-123',
   })
@@ -361,7 +361,7 @@ export class CreateMonitorDto {
   @IsOptional()
   platform_device_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The expiry date',
     example: '2024-12-31T23:59:59Z',
   })
@@ -369,7 +369,7 @@ export class CreateMonitorDto {
   @IsOptional()
   expiry_date?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether the monitor is disabled',
     example: false,
   })
@@ -377,7 +377,7 @@ export class CreateMonitorDto {
   @IsOptional()
   disabled?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The latest disabled timestamp',
     example: '2024-03-14T00:00:00Z',
   })
@@ -385,7 +385,7 @@ export class CreateMonitorDto {
   @IsOptional()
   latest_disabled_at?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The Zabbix host ID',
     example: 'zabbix-123',
   })
