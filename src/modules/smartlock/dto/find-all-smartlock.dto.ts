@@ -4,6 +4,14 @@ import { SmartLockStatus } from '../enums/smartlock-status.enum';
 
 export class FindAllSmartLockDto {
   @ApiPropertyOptional({
+    description: 'Search by name or serial number',
+    example: 'Front Door',
+  })
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional({
     description: 'Filter by company code',
     example: 'COMP001',
   })

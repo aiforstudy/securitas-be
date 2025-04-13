@@ -41,7 +41,7 @@ export class SmartLockController {
   })
   @Get()
   findAll(@Query() query: FindAllSmartLockDto) {
-    return this.smartLockService.findAll(query.status, query.company_code);
+    return this.smartLockService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Search and paginate smartlocks' })

@@ -4,6 +4,7 @@ import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { SmartLock } from './entities/smartlock.entity';
 import { CreateSmartLockDto } from './dto/create-smartlock.dto';
 import { FindSmartLockDto } from './dto/find-smartlock.dto';
+import { FindAllSmartLockDto } from './dto/find-all-smartlock.dto';
 import { SmartLockStatus } from './enums/smartlock-status.enum';
 
 @Injectable()
@@ -22,16 +23,32 @@ export class SmartLockService {
     return this.smartLockRepository.save(smartLock);
   }
 
-  async findAll(
-    status?: SmartLockStatus,
-    company_code?: string,
-  ): Promise<SmartLock[]> {
-    const where: FindOptionsWhere<SmartLock> = {};
-    if (status) where.status = status;
-    if (company_code) where.company_code = company_code;
+  async findAll(query: FindAllSmartLockDto): Promise<SmartLock[]> {
+    const { search, status, company_code } = query;
+    const where: FindOptionsWhere<SmartLock>[] = [];
+
+    if (search) {
+      where.push({ name: Like(`%${search}%`) }, { sn: Like(`%${search}%`) });
+    }
+
+    if (status || company_code) {
+      if (where.length > 0) {
+        // If we have search conditions, add status and company_code to each condition
+        where.forEach((condition) => {
+          if (status) condition.status = status;
+          if (company_code) condition.company_code = company_code;
+        });
+      } else {
+        // If no search conditions, just add status and company_code condition
+        const condition: FindOptionsWhere<SmartLock> = {};
+        if (status) condition.status = status;
+        if (company_code) condition.company_code = company_code;
+        where.push(condition);
+      }
+    }
 
     return this.smartLockRepository.find({
-      where,
+      where: where.length > 0 ? where : undefined,
       order: {
         latest_time: 'DESC',
       },
@@ -95,6 +112,8 @@ export class SmartLockService {
         latest_time: 'DESC',
       },
     });
+
+    this.logger.log(`Found ${total} smartlocks`, items);
 
     return {
       items,
