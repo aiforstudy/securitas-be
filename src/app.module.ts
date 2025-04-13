@@ -11,6 +11,7 @@ import { MonitorModule } from './modules/monitor/monitor.module';
 import { DetectionModule } from './modules/detection/detection.module';
 import { EngineModule } from './modules/engine/engine.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { SmartLockModule } from './modules/smartlock/smartlock.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from './modules/auth/auth.module';
     MonitorModule,
     DetectionModule,
     AuthModule,
+    SmartLockModule,
   ],
   controllers: [AppController],
   providers: [AppService],
