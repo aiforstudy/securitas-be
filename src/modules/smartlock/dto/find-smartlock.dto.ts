@@ -1,6 +1,7 @@
-import { IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { SmartLockStatus } from '../enums/smartlock-status.enum';
 
 export class FindSmartLockDto {
   @ApiPropertyOptional({
@@ -10,6 +11,15 @@ export class FindSmartLockDto {
   @IsString()
   @IsOptional()
   search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by connection status',
+    enum: SmartLockStatus,
+    example: SmartLockStatus.CONNECTED,
+  })
+  @IsEnum(SmartLockStatus)
+  @IsOptional()
+  status?: SmartLockStatus;
 
   @ApiPropertyOptional({
     description: 'Page number (1-based)',

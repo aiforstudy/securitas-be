@@ -20,6 +20,7 @@ import { CreateSmartLockDto } from './dto/create-smartlock.dto';
 import { FindSmartLockDto } from './dto/find-smartlock.dto';
 import { SmartLock } from './entities/smartlock.entity';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { SmartLockStatus } from './enums/smartlock-status.enum';
 
 @ApiTags('SmartLocks')
 @Controller('smartlocks')
@@ -39,14 +40,21 @@ export class SmartLockController {
   }
 
   @ApiOperation({ summary: 'Get all smartlocks' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Filter by connection status',
+    enum: SmartLockStatus,
+    example: SmartLockStatus.CONNECTED,
+  })
   @ApiResponse({
     status: 200,
     description: 'Return all smartlocks.',
     type: [SmartLock],
   })
   @Get()
-  findAll() {
-    return this.smartLockService.findAll();
+  findAll(@Query('status') status?: SmartLockStatus) {
+    return this.smartLockService.findAll(status);
   }
 
   @ApiOperation({ summary: 'Get a smartlock by id' })
@@ -88,6 +96,13 @@ export class SmartLockController {
     name: 'search',
     required: false,
     description: 'Search by name or serial number',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Filter by connection status',
+    enum: SmartLockStatus,
+    example: SmartLockStatus.CONNECTED,
   })
   @ApiQuery({
     name: 'page',
