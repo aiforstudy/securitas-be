@@ -13,6 +13,14 @@ export class FindSmartLockDto {
   search?: string;
 
   @ApiPropertyOptional({
+    description: 'Filter by company code',
+    example: 'COMP001',
+  })
+  @IsString()
+  @IsOptional()
+  company_code?: string;
+
+  @ApiPropertyOptional({
     description: 'Filter by connection status',
     enum: SmartLockStatus,
     example: SmartLockStatus.CONNECTED,

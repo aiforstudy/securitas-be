@@ -10,6 +10,13 @@ import { SmartLockStatus } from '../enums/smartlock-status.enum';
 
 export class CreateSmartLockDto {
   @ApiProperty({
+    description: 'Company code that owns the smartlock',
+    example: 'COMP001',
+  })
+  @IsString()
+  company_code: string;
+
+  @ApiProperty({
     description: 'Serial number of the smartlock',
     example: 'SL-123456',
   })

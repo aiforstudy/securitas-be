@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, FindOptionsWhere } from 'typeorm';
 import { SmartLock } from './entities/smartlock.entity';
 import { CreateSmartLockDto } from './dto/create-smartlock.dto';
 import { FindSmartLockDto } from './dto/find-smartlock.dto';
@@ -8,6 +8,7 @@ import { SmartLockStatus } from './enums/smartlock-status.enum';
 
 @Injectable()
 export class SmartLockService {
+  private readonly logger = new Logger(SmartLockService.name);
   constructor(
     @InjectRepository(SmartLock)
     private smartLockRepository: Repository<SmartLock>,
@@ -21,8 +22,14 @@ export class SmartLockService {
     return this.smartLockRepository.save(smartLock);
   }
 
-  async findAll(status?: SmartLockStatus): Promise<SmartLock[]> {
-    const where = status ? { status } : {};
+  async findAll(
+    status?: SmartLockStatus,
+    company_code?: string,
+  ): Promise<SmartLock[]> {
+    const where: FindOptionsWhere<SmartLock> = {};
+    if (status) where.status = status;
+    if (company_code) where.company_code = company_code;
+
     return this.smartLockRepository.find({
       where,
       order: {
@@ -55,26 +62,33 @@ export class SmartLockService {
   }
 
   async searchAndPaginate(query: FindSmartLockDto) {
-    const { search, status, page, limit } = query;
+    const { search, status, company_code, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
 
-    const whereConditions = [];
+    const where: FindOptionsWhere<SmartLock>[] = [];
 
     if (search) {
-      whereConditions.push(
-        { name: Like(`%${search}%`) },
-        { sn: Like(`%${search}%`) },
-      );
+      where.push({ name: Like(`%${search}%`) }, { sn: Like(`%${search}%`) });
     }
 
-    if (status) {
-      whereConditions.push({ status });
+    if (status || company_code) {
+      if (where.length > 0) {
+        // If we have search conditions, add status and company_code to each condition
+        where.forEach((condition) => {
+          if (status) condition.status = status;
+          if (company_code) condition.company_code = company_code;
+        });
+      } else {
+        // If no search conditions, just add status and company_code condition
+        const condition: FindOptionsWhere<SmartLock> = {};
+        if (status) condition.status = status;
+        if (company_code) condition.company_code = company_code;
+        where.push(condition);
+      }
     }
-
-    const where = whereConditions.length > 0 ? whereConditions : {};
 
     const [items, total] = await this.smartLockRepository.findAndCount({
-      where,
+      where: where.length > 0 ? where : undefined,
       skip,
       take: limit,
       order: {

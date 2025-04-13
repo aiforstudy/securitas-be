@@ -18,6 +18,13 @@ export class SmartLock {
   id: string;
 
   @ApiProperty({
+    description: 'Company code that owns the smartlock',
+    example: 'COMP001',
+  })
+  @Column()
+  company_code: string;
+
+  @ApiProperty({
     description: 'Serial number of the smartlock',
     example: 'SL-123456',
   })
@@ -60,6 +67,7 @@ export class SmartLock {
 
   @ApiProperty({
     description: 'Latest update time of the smartlock',
+    example: '2024-03-20T10:00:00.000Z',
   })
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   latest_time: Date;

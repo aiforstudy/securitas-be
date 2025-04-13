@@ -8,19 +8,13 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SmartLockService } from './smartlock.service';
 import { CreateSmartLockDto } from './dto/create-smartlock.dto';
 import { FindSmartLockDto } from './dto/find-smartlock.dto';
+import { FindAllSmartLockDto } from './dto/find-all-smartlock.dto';
 import { SmartLock } from './entities/smartlock.entity';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
-import { SmartLockStatus } from './enums/smartlock-status.enum';
 
 @ApiTags('SmartLocks')
 @Controller('smartlocks')
@@ -40,21 +34,31 @@ export class SmartLockController {
   }
 
   @ApiOperation({ summary: 'Get all smartlocks' })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    description: 'Filter by connection status',
-    enum: SmartLockStatus,
-    example: SmartLockStatus.CONNECTED,
-  })
   @ApiResponse({
     status: 200,
     description: 'Return all smartlocks.',
     type: [SmartLock],
   })
   @Get()
-  findAll(@Query('status') status?: SmartLockStatus) {
-    return this.smartLockService.findAll(status);
+  findAll(@Query() query: FindAllSmartLockDto) {
+    return this.smartLockService.findAll(query.status, query.company_code);
+  }
+
+  @ApiOperation({ summary: 'Search and paginate smartlocks' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return paginated smartlocks.',
+    type: PaginatedResponseDto<SmartLock>,
+  })
+  @Get('search')
+  async searchAndPaginate(@Query() query: FindSmartLockDto) {
+    const result = await this.smartLockService.searchAndPaginate(query);
+    return new PaginatedResponseDto<SmartLock>(
+      result.items,
+      result.total,
+      result.page,
+      result.limit,
+    );
   }
 
   @ApiOperation({ summary: 'Get a smartlock by id' })
@@ -89,47 +93,6 @@ export class SmartLockController {
   @Get('sn/:sn')
   findBySn(@Param('sn') sn: string) {
     return this.smartLockService.findBySn(sn);
-  }
-
-  @ApiOperation({ summary: 'Search and paginate smartlocks' })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search by name or serial number',
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    description: 'Filter by connection status',
-    enum: SmartLockStatus,
-    example: SmartLockStatus.CONNECTED,
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'Page number (1-based)',
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Items per page',
-    example: 10,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Return paginated smartlocks.',
-    type: PaginatedResponseDto<SmartLock>,
-  })
-  @Get('search')
-  async searchAndPaginate(@Query() query: FindSmartLockDto) {
-    const result = await this.smartLockService.searchAndPaginate(query);
-    return new PaginatedResponseDto<SmartLock>(
-      result.items,
-      result.total,
-      result.page,
-      result.limit,
-    );
   }
 
   @ApiOperation({ summary: 'Update a smartlock' })
