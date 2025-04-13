@@ -4,9 +4,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { SmartLockStatus } from '../enums/smartlock-status.enum';
+import { SmartLockEvent } from './smartlock-event.entity';
 
 @Entity('smartlocks')
 export class SmartLock {
@@ -85,4 +87,7 @@ export class SmartLock {
   })
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => SmartLockEvent, (event) => event.smartlock)
+  events: SmartLockEvent[];
 }
