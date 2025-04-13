@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { SmartLock } from './entities/smartlock.entity';
 import { CreateSmartLockDto } from './dto/create-smartlock.dto';
+import { FindSmartLockDto } from './dto/find-smartlock.dto';
 
 @Injectable()
 export class SmartLockService {
@@ -38,5 +39,30 @@ export class SmartLockService {
 
   async remove(id: string): Promise<void> {
     await this.smartLockRepository.delete(id);
+  }
+
+  async searchAndPaginate(query: FindSmartLockDto) {
+    const { search, page, limit } = query;
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? [{ name: Like(`%${search}%`) }, { sn: Like(`%${search}%`) }]
+      : {};
+
+    const [items, total] = await this.smartLockRepository.findAndCount({
+      where,
+      skip,
+      take: limit,
+      order: {
+        created_at: 'DESC',
+      },
+    });
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+    };
   }
 }

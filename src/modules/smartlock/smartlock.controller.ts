@@ -6,11 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { SmartLockService } from './smartlock.service';
 import { CreateSmartLockDto } from './dto/create-smartlock.dto';
+import { FindSmartLockDto } from './dto/find-smartlock.dto';
 import { SmartLock } from './entities/smartlock.entity';
+import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
 
 @ApiTags('SmartLocks')
 @Controller('smartlocks')
@@ -72,6 +81,40 @@ export class SmartLockController {
   @Get('sn/:sn')
   findBySn(@Param('sn') sn: string) {
     return this.smartLockService.findBySn(sn);
+  }
+
+  @ApiOperation({ summary: 'Search and paginate smartlocks' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search by name or serial number',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number (1-based)',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Items per page',
+    example: 10,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Return paginated smartlocks.',
+    type: PaginatedResponseDto<SmartLock>,
+  })
+  @Get('search')
+  async searchAndPaginate(@Query() query: FindSmartLockDto) {
+    const result = await this.smartLockService.searchAndPaginate(query);
+    return new PaginatedResponseDto<SmartLock>(
+      result.items,
+      result.total,
+      result.page,
+      result.limit,
+    );
   }
 
   @ApiOperation({ summary: 'Update a smartlock' })
