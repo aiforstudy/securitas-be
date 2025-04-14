@@ -21,15 +21,12 @@ export class SmartLockService {
     return this.smartLockRepository.save(smartLock);
   }
 
-  async findAll(findSmartLockDto: FindSmartLockDto) {
-    const { page = 1, limit = 10, search, status, from, to } = findSmartLockDto;
-    const skip = (page - 1) * limit;
+  async findAll(findSmartLockDto: FindAllSmartLockDto) {
+    const { search, status, company_code } = findSmartLockDto;
 
     const queryBuilder = this.smartLockRepository
       .createQueryBuilder('smartlock')
-      .orderBy('smartlock.created_at', 'DESC')
-      .skip(skip)
-      .take(limit);
+      .orderBy('smartlock.created_at', 'DESC');
 
     if (search) {
       queryBuilder.andWhere(
@@ -42,23 +39,13 @@ export class SmartLockService {
       queryBuilder.andWhere('smartlock.status = :status', { status });
     }
 
-    if (from) {
-      queryBuilder.andWhere('smartlock.latest_time >= :from', { from });
+    if (company_code) {
+      queryBuilder.andWhere('smartlock.company_code = :company_code', {
+        company_code,
+      });
     }
 
-    if (to) {
-      queryBuilder.andWhere('smartlock.latest_time <= :to', { to });
-    }
-
-    const [items, total] = await queryBuilder.getManyAndCount();
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-      total_pages: Math.ceil(total / limit),
-    };
+    return queryBuilder.getMany();
   }
 
   async findOne(id: string): Promise<SmartLock> {
