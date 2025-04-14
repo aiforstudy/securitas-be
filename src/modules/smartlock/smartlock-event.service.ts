@@ -32,6 +32,7 @@ export class SmartLockEventService {
     // Create the event
     const event = this.eventRepository.create({
       smartlock: smartLock,
+      sn: createEventDto.sn,
       lat: createEventDto.lat,
       lng: createEventDto.lng,
       temperature: createEventDto.temperature,
@@ -47,7 +48,7 @@ export class SmartLockEventService {
   }
 
   async findAll(findEventDto: FindSmartLockEventDto) {
-    const { page = 1, limit = 10, smartlock_id, sn } = findEventDto;
+    const { page = 1, limit = 10, smartlock_id, sn, from, to } = findEventDto;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.eventRepository
@@ -64,7 +65,15 @@ export class SmartLockEventService {
     }
 
     if (sn) {
-      queryBuilder.andWhere('smartlock.sn = :sn', { sn });
+      queryBuilder.andWhere('event.sn = :sn', { sn });
+    }
+
+    if (from) {
+      queryBuilder.andWhere('event.created_at >= :from', { from });
+    }
+
+    if (to) {
+      queryBuilder.andWhere('event.created_at <= :to', { to });
     }
 
     const [items, total] = await queryBuilder.getManyAndCount();

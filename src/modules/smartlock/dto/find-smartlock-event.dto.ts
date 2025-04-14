@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsDateString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class FindSmartLockEventDto {
@@ -31,9 +37,25 @@ export class FindSmartLockEventDto {
 
   @ApiPropertyOptional({
     description: 'Serial number to filter events',
-    example: 'SL-123456',
+    example: 'SL-100001',
   })
   @IsString()
   @IsOptional()
   sn?: string;
+
+  @ApiPropertyOptional({
+    description: 'Start date for filtering events (ISO format)',
+    example: '2025-04-13T00:00:00.000Z',
+  })
+  @IsDateString()
+  @IsOptional()
+  from?: string;
+
+  @ApiPropertyOptional({
+    description: 'End date for filtering events (ISO format)',
+    example: '2025-04-13T23:59:59.999Z',
+  })
+  @IsDateString()
+  @IsOptional()
+  to?: string;
 }
