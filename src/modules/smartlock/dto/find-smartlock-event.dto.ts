@@ -28,14 +28,6 @@ export class FindSmartLockEventDto {
   limit?: number = 10;
 
   @ApiPropertyOptional({
-    description: 'Smartlock ID to filter events',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  @IsOptional()
-  smartlock_id?: string;
-
-  @ApiPropertyOptional({
     description: 'Serial number to filter events',
     example: 'SL-100001',
   })

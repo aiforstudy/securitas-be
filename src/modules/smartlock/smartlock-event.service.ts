@@ -48,7 +48,7 @@ export class SmartLockEventService {
   }
 
   async findAll(findEventDto: FindSmartLockEventDto) {
-    const { page = 1, limit = 10, smartlock_id, sn, from, to } = findEventDto;
+    const { page = 1, limit = 10, sn, from, to } = findEventDto;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.eventRepository
@@ -57,12 +57,6 @@ export class SmartLockEventService {
       .orderBy('event.created_at', 'DESC')
       .skip(skip)
       .take(limit);
-
-    if (smartlock_id) {
-      queryBuilder.andWhere('event.smartlock_id = :smartlock_id', {
-        smartlock_id,
-      });
-    }
 
     if (sn) {
       queryBuilder.andWhere('event.sn = :sn', { sn });

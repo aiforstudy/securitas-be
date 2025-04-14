@@ -13,6 +13,7 @@ import { SmartLockEventService } from './smartlock-event.service';
 import { CreateSmartLockEventDto } from './dto/create-smartlock-event.dto';
 import { FindSmartLockEventDto } from './dto/find-smartlock-event.dto';
 import { SmartLockEvent } from './entities/smartlock-event.entity';
+import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
 
 @ApiTags('Smart Lock Events')
 @Controller('smartlock-events')
@@ -40,7 +41,7 @@ export class SmartLockEventController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Return all events with pagination.',
-    type: SmartLockEvent,
+    type: PaginatedResponseDto<SmartLockEvent>,
     isArray: true,
   })
   async findAll(@Query() findEventDto: FindSmartLockEventDto) {

@@ -1,11 +1,11 @@
-import { IsOptional, IsString, IsInt, Min, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SmartLockStatus } from '../enums/smartlock-status.enum';
 
 export class FindSmartLockDto {
   @ApiPropertyOptional({
-    description: 'Search by name or serial number',
+    description: 'Search term for name or serial number',
     example: 'Front Door',
   })
   @IsString()
@@ -13,15 +13,33 @@ export class FindSmartLockDto {
   search?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by company code',
-    example: 'COMP001',
+    description: 'Company code associated with the smart lock',
+    example: 'COMP123',
   })
   @IsString()
   @IsOptional()
   company_code?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by connection status',
+    description: 'Page number (1-based)',
+    example: 1,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  page?: number = 1;
+
+  @ApiPropertyOptional({
+    description: 'Number of items per page',
+    example: 10,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  limit?: number = 10;
+
+  @ApiPropertyOptional({
+    description: 'Status of the smart lock',
     enum: SmartLockStatus,
     example: SmartLockStatus.CONNECTED,
   })
@@ -30,24 +48,18 @@ export class FindSmartLockDto {
   status?: SmartLockStatus;
 
   @ApiPropertyOptional({
-    description: 'Page number (1-based)',
-    example: 1,
-    default: 1,
+    description: 'Start date for filtering by latest_time (ISO format)',
+    example: '2025-04-13T00:00:00.000Z',
   })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  @IsString()
   @IsOptional()
-  page?: number = 1;
+  from?: string;
 
   @ApiPropertyOptional({
-    description: 'Number of items per page',
-    example: 10,
-    default: 10,
+    description: 'End date for filtering by latest_time (ISO format)',
+    example: '2025-04-13T23:59:59.999Z',
   })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  @IsString()
   @IsOptional()
-  limit?: number = 10;
+  to?: string;
 }
