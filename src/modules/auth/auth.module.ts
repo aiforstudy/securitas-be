@@ -6,14 +6,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './services/auth.service';
 import { AuthController } from './controllers/auth.controller';
 import { User } from './entities/user.entity';
+import { Role } from './entities/role.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersService } from './services/users.service';
-import { PermissionsService } from './services/permissions.service';
+import { RolesService } from './services/roles.service';
+import { RolesController } from './controllers/roles.controller';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { PermissionsService } from './services/permissions.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Role]),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -24,14 +27,15 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, RolesController],
   providers: [
     AuthService,
     JwtStrategy,
-    UsersService,
     PermissionsService,
+    UsersService,
+    RolesService,
     PermissionsGuard,
   ],
-  exports: [AuthService, UsersService, PermissionsService, PermissionsGuard],
+  exports: [AuthService, UsersService, RolesService, PermissionsGuard],
 })
 export class AuthModule {}

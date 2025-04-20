@@ -33,10 +33,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const permissions = await this.permissionsService.getUserPermissions(user);
+
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      permissions,
+    };
+
     return {
       access_token: this.jwtService.sign(payload),
-      user: this.getUserPermissions(user),
+      user: await this.getUserPermissions(user),
     };
   }
 
@@ -58,10 +66,21 @@ export class AuthService {
 
     await this.userRepository.save(user);
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const permissions = await this.permissionsService.getUserPermissions(user);
+    const formattedPermissions = permissions.flatMap((p) =>
+      p.actions.map((action) => `${p.resource}.${action}`),
+    );
+
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      permissions: formattedPermissions,
+    };
+
     return {
       access_token: this.jwtService.sign(payload),
-      user: this.getUserPermissions(user),
+      user: await this.getUserPermissions(user),
     };
   }
 
@@ -73,14 +92,16 @@ export class AuthService {
     return this.getUserPermissions(user);
   }
 
-  private getUserPermissions(user: User): UserPermissionsDto {
+  private async getUserPermissions(user: User): Promise<UserPermissionsDto> {
+    const permissions = await this.permissionsService.getUserPermissions(user);
+
     return {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
       company_code: user.company_code,
-      permissions: this.permissionsService.getUserPermissions(user),
+      permissions,
     };
   }
 }

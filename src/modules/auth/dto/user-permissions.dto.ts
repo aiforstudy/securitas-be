@@ -1,40 +1,53 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '../enums/role.enum';
+
+export class PermissionRequirement {
+  resource: string;
+  actions: string[];
+}
 
 export class UserPermissionsDto {
   @ApiProperty({
-    description: 'User ID',
+    description: 'The unique identifier of the user',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   id: string;
 
   @ApiProperty({
-    description: 'User email',
+    description: 'The email of the user',
     example: 'user@example.com',
   })
   email: string;
 
   @ApiProperty({
-    description: 'User name',
+    description: 'The name of the user',
     example: 'John Doe',
   })
   name: string;
 
   @ApiProperty({
-    description: 'User role',
-    example: 'admin',
+    description: 'The role of the user',
+    example: Role.ADMIN,
+    enum: Role,
   })
-  role: string;
+  role: Role;
 
   @ApiProperty({
-    description: 'Company code associated with the user',
+    description: 'The company code associated with the user',
     example: 'COMP001',
     required: false,
   })
   company_code?: string;
 
   @ApiProperty({
-    description: 'List of permissions based on role',
-    example: ['view_dashboard', 'manage_users', 'manage_companies'],
+    description: 'The permissions of the user',
+    example: [
+      {
+        resource: 'detection',
+        actions: ['read', 'create', 'edit', 'delete'],
+      },
+    ],
+    type: [PermissionRequirement],
   })
-  permissions: string[];
+  permissions: PermissionRequirement[];
 }

@@ -17,11 +17,14 @@ import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import { UserPermissionsDto } from '../dto/user-permissions.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-
+import { PermissionsService } from '../services/permissions.service';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly permissionsService: PermissionsService,
+  ) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
