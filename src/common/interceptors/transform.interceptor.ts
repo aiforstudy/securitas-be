@@ -22,36 +22,34 @@ export class TransformInterceptor<T>
 
     return next.handle().pipe(
       map((data) => {
-        let transformedData: any;
-
         // If data is an array, transform each item
         if (Array.isArray(data)) {
-          transformedData = data.map((item) => {
+          return data.map((item) => {
             if (item && typeof item === 'object' && 'constructor' in item) {
-              return plainToInstance(item.constructor, item, {
-                excludeExtraneousValues: true,
-              });
+              const dto = item.constructor;
+              if (dto.name.endsWith('Dto')) {
+                return plainToInstance(dto, item, {
+                  excludeExtraneousValues: true,
+                  enableImplicitConversion: true,
+                });
+              }
             }
             return item;
           });
-        } else if (data && typeof data === 'object' && 'constructor' in data) {
-          // If data is a single object
-          transformedData = plainToInstance(data.constructor, data, {
-            excludeExtraneousValues: true,
-          });
-        } else {
-          transformedData = data;
         }
 
-        return {
-          data: transformedData,
-          metadata: {
-            timestamp: new Date().toISOString(),
-            path: request.url,
-            statusCode: response.statusCode,
-            message: data?.message,
-          },
-        };
+        // If data is a single object
+        if (data && typeof data === 'object' && 'constructor' in data) {
+          const dto = data.constructor;
+          if (dto.name.endsWith('Dto')) {
+            return plainToInstance(dto, data, {
+              excludeExtraneousValues: true,
+              enableImplicitConversion: true,
+            });
+          }
+        }
+
+        return data;
       }),
     );
   }
