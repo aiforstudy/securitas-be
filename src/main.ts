@@ -18,6 +18,7 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Enable validation and transformation
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -26,9 +27,9 @@ async function bootstrap() {
     }),
   );
 
-  // Global error interceptor
+  // Global interceptors
   app.useGlobalInterceptors(new ErrorInterceptor());
-  // app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // Swagger Configuration
   const config = new DocumentBuilder()

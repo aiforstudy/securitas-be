@@ -12,6 +12,7 @@ import { DetectionModule } from './modules/detection/detection.module';
 import { EngineModule } from './modules/engine/engine.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SmartLockModule } from './modules/smartlock/smartlock.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SmartLockModule } from './modules/smartlock/smartlock.module';
     DetectionModule,
     AuthModule,
     SmartLockModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

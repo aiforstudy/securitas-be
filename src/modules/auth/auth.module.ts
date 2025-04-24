@@ -36,6 +36,12 @@ import { PermissionsService } from './services/permissions.service';
     RolesService,
     PermissionsGuard,
   ],
-  exports: [AuthService, UsersService, RolesService, PermissionsGuard],
+  exports: [
+    AuthService,
+    UsersService,
+    RolesService,
+    PermissionsGuard,
+    PermissionsService,
+  ],
 })
 export class AuthModule {}
