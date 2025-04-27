@@ -116,7 +116,7 @@ export class RolesController {
   }
 
   @Delete(':code')
-  @Permissions('role.delete')
+  // @Permissions('role.delete')
   @ApiOperation({ summary: 'Delete a role' })
   @ApiResponse({ status: 200, description: 'Role deleted successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })
