@@ -1,13 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
-import { Role } from '../enums/role.enum';
+import { Role } from '../entities/role.entity';
 
 export class UpdateRoleDto {
   @ApiProperty({
     description: 'The new role for the user',
-    enum: Role,
-    example: Role.USER,
+    example: 'viewer',
   })
   @IsEnum(Role)
-  role: Role;
+  role_id: string;
 }

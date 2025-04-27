@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
-import { Role } from '../../auth/enums/role.enum';
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -33,13 +32,12 @@ export class UpdateUserDto {
 
   @ApiProperty({
     description: 'The role of the user',
-    example: Role.VIEWER,
-    enum: Role,
+    example: 'viewer',
     required: false,
   })
   @IsString()
   @IsOptional()
-  role?: Role;
+  role?: string;
 
   @ApiPropertyOptional({
     description: 'The company code associated with the user',

@@ -15,7 +15,7 @@ export class PermissionsService {
     user: User,
   ): Promise<{ resource: string; actions: string[] }[]> {
     const role = await this.roleRepository.findOne({
-      where: { code: user.role },
+      where: { id: user.role_id },
     });
     return role?.permissions || [];
   }

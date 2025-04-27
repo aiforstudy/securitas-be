@@ -32,7 +32,7 @@ export class RegisterDto {
   })
   @IsString()
   @IsOptional()
-  role?: string;
+  role_id?: string;
 
   @ApiPropertyOptional({
     description: 'The company code associated with the user',

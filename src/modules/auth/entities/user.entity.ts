@@ -4,9 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '../enums/role.enum';
+import { Role } from './role.entity';
 
 @Entity('users')
 export class User {
@@ -40,14 +42,13 @@ export class User {
 
   @ApiProperty({
     description: 'The role of the user',
-    example: Role.ADMIN,
-    enum: Role,
+    example: 'admin',
   })
-  @Column({
-    type: 'enum',
-    enum: Role,
-    default: Role.VIEWER,
-  })
+  @Column()
+  role_id: string;
+
+  @ManyToOne(() => Role, (role) => role.users)
+  @JoinColumn({ name: 'role_id' })
   role: Role;
 
   @ApiProperty({

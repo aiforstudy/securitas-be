@@ -1,7 +1,7 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -24,13 +24,13 @@ export class UsersService {
     }
 
     // Check if the new role is different from the current role
-    if (user.role === updateRoleDto.role) {
-      throw new BadRequestException(
-        `User already has role ${updateRoleDto.role}`,
+    if (user.role.id === updateRoleDto.role_id) {
+      throw new ConflictException(
+        `User already has role ${updateRoleDto.role_id}`,
       );
     }
 
-    user.role = updateRoleDto.role;
+    user.role_id = updateRoleDto.role_id;
     return this.userRepository.save(user);
   }
 }

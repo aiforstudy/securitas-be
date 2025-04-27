@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '../enums/role.enum';
+import { Role } from '../entities/role.entity';
 
 export class PermissionRequirement {
   resource: string;
@@ -27,8 +27,6 @@ export class UserPermissionsDto {
 
   @ApiProperty({
     description: 'The role of the user',
-    example: Role.ADMIN,
-    enum: Role,
   })
   role: Role;
 

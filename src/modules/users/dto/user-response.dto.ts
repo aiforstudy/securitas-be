@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Transform } from 'class-transformer';
-import { Role } from '../../auth/enums/role.enum';
+import { Exclude, Expose } from 'class-transformer';
 import { User } from '../../auth/entities/user.entity';
+import { Role } from '../../auth/entities/role.entity';
 
 @Exclude()
 export class UserResponseDto {
@@ -29,8 +29,7 @@ export class UserResponseDto {
   @Expose()
   @ApiProperty({
     description: 'The role of the user',
-    example: Role.VIEWER,
-    enum: Role,
+    type: Role,
   })
   role: Role;
 

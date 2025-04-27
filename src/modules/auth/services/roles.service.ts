@@ -19,30 +19,30 @@ export class RolesService {
     return this.roleRepository.find();
   }
 
-  async findOne(code: string): Promise<Role> {
-    const role = await this.roleRepository.findOne({ where: { code } });
+  async findOne(id: string): Promise<Role> {
+    const role = await this.roleRepository.findOne({ where: { id } });
     if (!role) {
-      throw new NotFoundException(`Role with code ${code} not found`);
+      throw new NotFoundException(`Role with id ${id} not found`);
     }
     return role;
   }
 
-  async findByCode(code: string): Promise<Role> {
-    const role = await this.roleRepository.findOne({ where: { code } });
+  async findById(id: string): Promise<Role> {
+    const role = await this.roleRepository.findOne({ where: { id } });
     if (!role) {
-      throw new NotFoundException(`Role with code ${code} not found`);
+      throw new NotFoundException(`Role with id ${id} not found`);
     }
     return role;
   }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
     const existingRole = await this.roleRepository.findOne({
-      where: { code: createRoleDto.code },
+      where: { id: createRoleDto.id },
     });
 
     if (existingRole) {
       throw new BadRequestException(
-        `Role with code ${createRoleDto.code} already exists`,
+        `Role with id ${createRoleDto.id} already exists`,
       );
     }
 
@@ -50,16 +50,16 @@ export class RolesService {
     return this.roleRepository.save(role);
   }
 
-  async update(code: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
-    if (code === 'admin') {
+  async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
+    if (id === 'admin') {
       throw new BadRequestException('Cannot update admin role');
     }
 
-    const role = await this.findOne(code);
+    const role = await this.findOne(id);
 
-    if (code) {
+    if (id) {
       const existingRole = await this.roleRepository.findOne({
-        where: { code },
+        where: { id },
       });
 
       if (existingRole) {
@@ -72,8 +72,8 @@ export class RolesService {
     return this.roleRepository.save(role);
   }
 
-  async remove(code: string): Promise<void> {
-    const role = await this.findOne(code);
+  async remove(id: string): Promise<void> {
+    const role = await this.findOne(id);
     await this.roleRepository.remove(role);
   }
 }

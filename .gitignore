@@ -1,6 +1,7 @@
 # Environment files
 configurations/.env*
 !configurations/.env.example
+.env.*
 
 # compiled output
 /dist

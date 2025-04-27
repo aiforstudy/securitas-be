@@ -3,11 +3,11 @@ import { IsString, IsOptional, IsArray } from 'class-validator';
 
 export class CreateRoleDto {
   @ApiProperty({
-    description: 'The code of the role',
+    description: 'The id of the role',
     example: 'admin',
   })
   @IsString()
-  code: string;
+  id: string;
 
   @ApiProperty({
     description: 'The name of the role',

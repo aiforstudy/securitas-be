@@ -72,17 +72,17 @@ export class RolesController {
     return this.permissionsService.getAllPermissions();
   }
 
-  @Get(':code')
+  @Get(':id')
   @Permissions('role.read')
-  @ApiOperation({ summary: 'Get a role by code' })
+  @ApiOperation({ summary: 'Get a role by id' })
   @ApiResponse({
     status: 200,
     description: 'Returns the role',
     type: Role,
   })
   @ApiResponse({ status: 404, description: 'Role not found' })
-  async findOne(@Param('code') code: string): Promise<Role> {
-    return this.rolesService.findOne(code);
+  async findOne(@Param('id') id: string): Promise<Role> {
+    return this.rolesService.findOne(id);
   }
 
   @Post()
@@ -98,7 +98,7 @@ export class RolesController {
     return this.rolesService.create(createRoleDto);
   }
 
-  @Patch(':code')
+  @Patch(':id')
   @Permissions('role.edit')
   @ApiOperation({ summary: 'Update a role' })
   @ApiResponse({
@@ -109,18 +109,18 @@ export class RolesController {
   @ApiResponse({ status: 404, description: 'Role not found' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   async update(
-    @Param('code') code: string,
+    @Param('id') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ): Promise<Role> {
-    return this.rolesService.update(code, updateRoleDto);
+    return this.rolesService.update(id, updateRoleDto);
   }
 
-  @Delete(':code')
+  @Delete(':id')
   // @Permissions('role.delete')
   @ApiOperation({ summary: 'Delete a role' })
   @ApiResponse({ status: 200, description: 'Role deleted successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })
-  async remove(@Param('code') code: string): Promise<void> {
-    return this.rolesService.remove(code);
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.rolesService.remove(id);
   }
 }

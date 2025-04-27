@@ -8,13 +8,15 @@ import { RegisterDto } from '../dto/register.dto';
 import { UserPermissionsDto } from '../dto/user-permissions.dto';
 import * as bcrypt from 'bcrypt';
 import { PermissionsService } from './permissions.service';
-import { Role } from '../enums/role.enum';
+import { Role } from '../entities/role.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
     private readonly jwtService: JwtService,
     private readonly permissionsService: PermissionsService,
   ) {}
@@ -49,19 +51,27 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: registerDto.email },
-    });
+    const [existingUser, role] = await Promise.all([
+      this.userRepository.findOne({
+        where: { email: registerDto.email },
+      }),
+      this.roleRepository.findOne({
+        where: { id: registerDto.role_id },
+      }),
+    ]);
 
     if (existingUser) {
       throw new UnauthorizedException('Email already exists');
+    }
+
+    if (!role) {
+      throw new UnauthorizedException('Role not found');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const user = this.userRepository.create({
       ...registerDto,
       password: hashedPassword,
-      role: Role.VIEWER,
     });
 
     await this.userRepository.save(user);
@@ -74,9 +84,10 @@ export class AuthService {
     const payload = {
       email: user.email,
       sub: user.id,
-      role: user.role,
       permissions: formattedPermissions,
     };
+
+    user.role = role;
 
     return {
       access_token: this.jwtService.sign(payload),

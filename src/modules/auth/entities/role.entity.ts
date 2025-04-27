@@ -3,18 +3,20 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from './user.entity';
 
 @Entity('roles')
 export class Role {
   @ApiProperty({
-    description: 'The code of the role',
+    description: 'The unique identifier of the role',
     example: 'admin',
   })
-  @PrimaryColumn()
-  code: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ApiProperty({
     description: 'The name of the role',
@@ -48,4 +50,7 @@ export class Role {
   })
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => User, (user) => user.role)
+  users: User[];
 }
