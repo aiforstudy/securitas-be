@@ -115,12 +115,12 @@ export class RolesController {
     return this.rolesService.update(code, updateRoleDto);
   }
 
-  // @Delete(':code')
-  // @Permissions('role.delete')
-  // @ApiOperation({ summary: 'Delete a role' })
-  // @ApiResponse({ status: 200, description: 'Role deleted successfully' })
-  // @ApiResponse({ status: 404, description: 'Role not found' })
-  // async remove(@Param('code') code: string): Promise<void> {
-  //   return this.rolesService.remove(code);
-  // }
+  @Delete(':code')
+  @Permissions('role.delete')
+  @ApiOperation({ summary: 'Delete a role' })
+  @ApiResponse({ status: 200, description: 'Role deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Role not found' })
+  async remove(@Param('code') code: string): Promise<void> {
+    return this.rolesService.remove(code);
+  }
 }
