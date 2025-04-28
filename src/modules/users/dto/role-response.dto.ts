@@ -9,7 +9,7 @@ export class RoleResponseDto {
     description: 'The code of the role',
     example: 'admin',
   })
-  code: string;
+  id: string;
 
   @Expose()
   @ApiProperty({
