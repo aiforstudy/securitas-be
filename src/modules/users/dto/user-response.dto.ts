@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { User } from '../../auth/entities/user.entity';
-import { Role } from '../../auth/entities/role.entity';
+import { RoleResponseDto } from './role-response.dto';
 
 @Exclude()
 export class UserResponseDto {
@@ -29,9 +29,9 @@ export class UserResponseDto {
   @Expose()
   @ApiProperty({
     description: 'The role of the user',
-    type: Role,
+    type: RoleResponseDto,
   })
-  role: Role;
+  role: RoleResponseDto;
 
   @Expose()
   @ApiProperty({
@@ -56,6 +56,11 @@ export class UserResponseDto {
   updated_at: Date;
 
   constructor(partial: Partial<User>) {
-    Object.assign(this, partial);
+    if (partial) {
+      Object.assign(this, partial);
+      if (partial.role) {
+        this.role = new RoleResponseDto(partial.role);
+      }
+    }
   }
 }
