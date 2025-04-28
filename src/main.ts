@@ -29,7 +29,7 @@ async function bootstrap() {
 
   // Global interceptors
   app.useGlobalInterceptors(new ErrorInterceptor());
-  app.useGlobalInterceptors(new TransformInterceptor());
+  // app.useGlobalInterceptors(new TransformInterceptor());
 
   // Swagger Configuration
   const config = new DocumentBuilder()
